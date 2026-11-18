@@ -1,7 +1,8 @@
 # Pixelforge Studio architecture
 
-Through Phase 3: provider submission, signed webhooks, atomic settlement, and
-bounded recovery. UI, optional finances, and deployment remain deferred.
+Through Phase 4: provider submission, signed webhooks, atomic settlement,
+bounded recovery, and the authenticated Studio/gallery/Cost Inspector.
+Optional finances and deployment remain deferred.
 
 ## Boundaries and responsibilities
 
@@ -297,8 +298,39 @@ The existing jobs/failed_jobs migrations supply queue persistence. Inspect failu
 with `php artisan queue:failed`; retrying a stopped record does not silently reset
 its persisted attempt budget or request identity. A sync queue is not an asynchronous
 deployment. No worker, deployment, live submission, or development migration is
-started by the test suite. The JSON endpoint is ready for a later same-origin UI
-that sends the normal CSRF token.
+started by the test suite. Studio consumes the JSON endpoint through Inertia's
+same-origin HTTP client and normal XSRF cookie/header protection.
+
+## Phase 4 presentation boundaries
+
+Studio, paginated My Generations (12 per page), and generation detail are Inertia
+pages. Session authentication, create/viewAny/view policies, and user-scoped
+queries protect reads and prompt reuse. The dashboard login destination renders
+Studio; settings/authentication remain intact. GenerationResource explicitly
+allowlists public fields and requires eager-loaded settlements, avoiding N+1s and
+operational/credential leakage. Prompts render as text; references are URL inputs,
+never uploads or server-fetched images.
+
+POST /generations/quote shares creation's Form Request and QuoteGeneration action.
+It reads cached public pricing and returns decimal-string estimates, bounds,
+rates and provenance, without persistence or dispatch. Creation independently
+validates/reprices; the displayed range is not a guaranteed maximum. Vue debounces
+450 ms, cancels obsolete quotes, counts Unicode code points using Laravel-compatible
+boundary trimming, and preserves user-scoped tab drafts. An interrupted creation
+is never automatically resent; its draft retains an uncertainty warning.
+
+GET /generations/statuses accepts at most 12 distinct owned UUIDs. It reads only
+local data with eager-loaded settlements; optional detail includes billing rows.
+The shared polling composable waits four seconds between completed requests,
+pauses when hidden, revalidates on visibility restoration, stops at terminal
+states, cancels on unmount, and preserves last-known data on errors.
+
+The Cost Inspector recalculates category breakdowns through GenerationPricing
+using confirmed usage and accepted rates, verifies them against the authoritative
+settlement, and prepares exact totals/markup/differences in PHP. Vue only renders
+decimal strings. Missing/inconsistent successful billing is unavailable, never
+zero. Failed/rejected work is uncharged; uncertainty remains pending. Image links
+are temporary, hidden after expiry, and have graceful load-error fallbacks.
 
 ### Local webhook testing
 

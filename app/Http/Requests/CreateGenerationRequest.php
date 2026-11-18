@@ -13,6 +13,23 @@ use Illuminate\Validation\Validator;
 
 class CreateGenerationRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $references = $this->input('reference_images');
+
+        if (! is_array($references) || count($references) > 4) {
+            return;
+        }
+
+        foreach ($references as $key => $url) {
+            if (is_string($url)) {
+                $references[$key] = preg_replace_callback('/^https?:/i', fn (array $match): string => strtolower($match[0]), $url);
+            }
+        }
+
+        $this->merge(['reference_images' => $references]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', Generation::class) ?? false;

@@ -2,35 +2,25 @@
 
 namespace App\Actions\Generations;
 
-use App\Domain\Billing\GenerationPricing;
 use App\Domain\Generations\Enums\GenerationQuality;
 use App\Domain\Generations\Enums\GenerationSize;
 use App\Domain\Generations\Enums\SubmissionStatus;
-use App\Integrations\Pixelforge\PixelforgeClient;
-use App\Integrations\Pixelforge\PixelforgeException;
 use App\Jobs\SubmitGeneration;
 use App\Models\Generation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Throwable;
 
 final readonly class CreateGeneration
 {
-    public function __construct(private PixelforgeClient $client) {}
+    public function __construct(private QuoteGeneration $quoteGeneration) {}
 
     /** @param list<string> $referenceImages */
     public function handle(User $user, string $prompt, GenerationSize $size, GenerationQuality $quality, array $referenceImages): Generation
     {
         Gate::forUser($user)->authorize('create', Generation::class);
-        $pricing = $this->client->pricing();
-
-        try {
-            $quote = (new GenerationPricing($pricing->parameters))->quote($prompt, $size, $quality, $referenceImages, $pricing->rates);
-        } catch (Throwable) {
-            throw PixelforgeException::invalidResponse();
-        }
+        $quote = $this->quoteGeneration->handle($prompt, $size, $quality, $referenceImages);
 
         $id = (string) Str::uuid7();
         $idempotencyKey = (string) Str::uuid();

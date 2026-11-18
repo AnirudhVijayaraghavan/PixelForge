@@ -8,6 +8,11 @@ use Illuminate\Auth\Access\Response;
 
 class GenerationPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
     public function create(User $user): bool
     {
         return true;

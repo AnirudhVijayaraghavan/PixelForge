@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { BookOpen, Images, Sparkles } from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -14,26 +15,26 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { dashboard, studio } from '@/routes';
+import { index } from '@/routes/generations';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
+const { isCurrentUrl } = useCurrentUrl();
+const mainNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Studio',
+        href: studio(),
+        icon: Sparkles,
+        isActive: isCurrentUrl(studio()) || isCurrentUrl(dashboard()),
     },
-];
+    { title: 'My Generations', href: index(), icon: Images },
+]);
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: 'Pixelforge reference',
+        href: 'https://pixelforge.promptedit.dev/docs',
         icon: BookOpen,
     },
 ];
@@ -45,7 +46,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="studio()">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
