@@ -1,8 +1,12 @@
 <?php
 
+use App\Integrations\Pixelforge\PixelforgeClient;
 use App\Models\User;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\Client\Factory;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
@@ -13,6 +17,27 @@ function studioQuoteInput(): array
 {
     return ['prompt' => str_repeat('A', 400), 'size' => '1536x1024', 'quality' => 'high', 'reference_images' => ['https://example.com/a.jpg', 'https://example.com/b.jpg']];
 }
+
+test('repeated quotes stay available with serialized database caching', function () {
+    Http::fake(['https://pixelforge.promptedit.dev/v1/pricing' => Http::response(pixelforgePricingFixture())]);
+    app()->instance(PixelforgeClient::class, new PixelforgeClient(
+        app(Factory::class),
+        Cache::store('database'),
+        app(ConfigRepository::class),
+    ));
+    $this->actingAs(User::factory()->create());
+
+    $initial = $this->postJson(route('generations.quote'), array_replace(studioQuoteInput(), [
+        'size' => '1024x1024', 'quality' => 'low',
+    ]))->assertOk();
+    $updated = $this->postJson(route('generations.quote'), studioQuoteInput())->assertOk();
+
+    expect($updated->json('estimate.customer_charge_usd'))->not->toBe($initial->json('estimate.customer_charge_usd'));
+    $this->postJson(route('generations.quote'), studioQuoteInput())
+        ->assertOk()
+        ->assertJsonPath('estimate.customer_charge_usd', $updated->json('estimate.customer_charge_usd'));
+    Http::assertSentCount(1);
+});
 
 test('quotes exact server prices and bounds without submitting or writing domain records', function () {
     Queue::fake();

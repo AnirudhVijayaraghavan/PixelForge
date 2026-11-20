@@ -141,6 +141,7 @@ test('returns terminal status with exact costs and handles missing or expired im
     if ($imageState === 'expired') {
         $this->travelTo($generation->image_url_expires_at->addSecond());
     } elseif ($imageState === 'unavailable') {
+        $this->travelTo($generation->image_url_expires_at->subHour());
         DB::table('generations')->where('id', $generation->id)->update(['image_url' => null]);
     } else {
         $this->travelTo($generation->image_url_expires_at->subHour());

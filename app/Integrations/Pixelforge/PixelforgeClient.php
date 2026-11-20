@@ -18,17 +18,27 @@ final readonly class PixelforgeClient
 
     public function pricing(): PixelforgePricingData
     {
-        $key = 'pixelforge:pricing:'.hash('sha256', $this->baseUrl());
+        $key = 'pixelforge:pricing:v2:'.hash('sha256', $this->baseUrl());
 
-        return $this->cache->remember($key, 60, function (): PixelforgePricingData {
+        $data = $this->cache->remember($key, 60, function (): array {
             try {
                 $response = $this->request()->get('/pricing');
             } catch (ConnectionException) {
                 throw PixelforgeException::connectionFailure(false);
             }
 
-            return $this->parse($response, 200, fn (array $data): PixelforgePricingData => PixelforgePricingData::fromArray($data));
+            return $this->parse($response, 200, function (array $data): array {
+                PixelforgePricingData::fromArray($data);
+
+                return $data;
+            });
         });
+
+        try {
+            return PixelforgePricingData::fromArray($data);
+        } catch (Throwable) {
+            throw PixelforgeException::invalidResponse();
+        }
     }
 
     /** @param array{prompt: string, size: string, quality: string, reference_images: list<string>, metadata: array{local_generation_id: string}} $payload */
