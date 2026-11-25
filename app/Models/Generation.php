@@ -57,6 +57,7 @@ use LogicException;
  * @property int $recovery_dispatches
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable $updated_at
+ * @property-read CreditReservation|null $reservation
  * @property-read User $user
  * @property-read GenerationSettlement|null $settlement
  */
@@ -64,6 +65,12 @@ class Generation extends Model
 {
     /** @use HasFactory<GenerationFactory> */
     use HasFactory, HasUuids;
+
+    /** @return HasOne<CreditReservation, $this> */
+    public function reservation(): HasOne
+    {
+        return $this->hasOne(CreditReservation::class);
+    }
 
     protected static function booted(): void
     {

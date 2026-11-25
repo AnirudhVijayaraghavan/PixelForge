@@ -19,7 +19,7 @@ class GenerationShowController extends Controller
         Gate::authorize('view', $generation);
 
         return Inertia::render('generations/Show', [
-            'generation' => (new GenerationResource($generation->load('settlement')))->detail($request),
+            'generation' => (new GenerationResource($generation->load(['settlement', 'reservation'])))->detail($request),
         ]);
     }
 }

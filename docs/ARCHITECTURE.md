@@ -1,8 +1,8 @@
 # Pixelforge Studio architecture
 
-Through Phase 6: provider submission, signed webhooks, atomic settlement, bounded
+Through Phase 7: provider submission, signed webhooks, atomic settlement, bounded
 recovery, Studio/gallery/Cost Inspector, and admin financial reporting. Deployment
-exists; live financial verification is deferred to Phase 9. Wallets remain deferred.
+exists; live financial verification is deferred to Phase 9. Wallet-funded generation starts at Phase 7 rollout.
 
 ## Boundaries and responsibilities
 
@@ -432,3 +432,15 @@ The admin migration and operational promotion require a separate approved rollou
 No development/production migration or promotion is performed during this phase.
 Live provider financial acceptance remains deferred to Phase 9; automated tests
 use the original fail-closed SQLite memory environment and fake provider HTTP.
+
+## Wallet accounting
+
+The migration creates one USD wallet per existing user without copying old financial activity. Registration creates the user and zero wallet together. A unique user primary key also makes lazy creation safe for imported accounts. A generation and its reservation commit together in the new creation path. The reservation is the cutover marker. Every generation created before this path, including one that completes after rollout, remains outside wallet capture.
+
+The wallet row serializes changes to its signed settled balance and outstanding reserved total, both in integer nanodollars. Available is settled minus reserved. Simulated purchases lock that row and append a credit. A per-owner UUID identifies each confirmed denomination. Replaying the same intent returns the previous effect, and changing the denomination is rejected. The ledger rejects SQL UPDATE and DELETE. A capture has a unique generation and foreign keys to both the owner's reservation and the matching generation settlement amount. Account closure with financial history requires operator handling.
+
+Creation takes the browser's Idempotency-Key UUID, checks for replay, prices outside the transaction, locks the wallet, then rechecks the intent and funds. Only a newly inserted generation is touched while holding the wallet lock. For existing generations the order is generation first, then wallet. Purchases only lock the wallet. Admission uses the current quote's maximum: ceil(ceil(Unicode code points / characters per token) times (1 + variance)), plus billed reference image tokens, fixed output and maximum reasoning. GenerationPricing applies snapshot rates to those counts and marks up the total by 25%, HALF_UP once at nine decimal USD. The after-commit job uses the original provider payload and a separate provider idempotency key.
+
+The snapshot action computes the accepted maximum from the frozen token bounds and accepted rates. If the entire increase is affordable it enlarges the hold. Otherwise the original hold stays active, and the recorded accepted maximum exposes the shortfall. A hypothetical maximum outside supported precision is flagged for review. Terminal success copies the authoritative settlement amount into one wallet debit, closes the hold, and updates both balances in the same transaction. The ledger stores positive amounts; purchase rows add and capture rows subtract. The original quote and final held amount remain auditable. Actual charges can exceed the hold, leaving an explicit deficit and blocking new unaffordable submissions. Financial reports still aggregate settlements.
+
+Confirmed terminal failures and definitive submission rejections release the hold in the same transaction. Retryable overload, an eligible next-day quota retry, worker death, ambiguous POST, and exhausted unknown outcomes retain their holds. Recovery uses the original generation/key and the existing scheduler. For unresolved holds, investigate the provider identity and recover a trusted snapshot; elapsed time alone cannot establish a free failure. There is no automatic expiry. Deploy the schema first, then switch HTTP and queue workers together and drain old workers before admitting wallet-funded work. An older worker cannot capture wallet debits.

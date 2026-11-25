@@ -15,7 +15,7 @@ class GenerationStatusesController extends Controller
     public function __invoke(GenerationStatusesRequest $request): JsonResponse
     {
         $ids = $request->validated('ids');
-        $generations = $request->user()->generations()->with('settlement')->whereIn('id', $ids)->get();
+        $generations = $request->user()->generations()->with($request->boolean('detail') ? ['settlement', 'reservation'] : ['settlement'])->whereIn('id', $ids)->get();
         abort_unless($generations->count() === count($ids), 404);
 
         return response()->json(['generations' => $generations->map(function (Generation $generation) use ($request): array {

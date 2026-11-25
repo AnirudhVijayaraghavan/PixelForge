@@ -48,6 +48,7 @@ export function useGenerationComposer(
     const uncertain = ref(false);
     const ready = ref(false);
     const draftKey = `pixelforge:studio:${userId}`;
+    let intent = '';
     let persist = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let sequence = 0;
@@ -68,7 +69,7 @@ export function useGenerationComposer(
     const canSubmit = computed(
         () =>
             valid.value &&
-            quote.value !== null &&
+            quote.value?.affordable === true &&
             !quoteLoading.value &&
             !form.processing &&
             !uncertain.value,
@@ -82,6 +83,7 @@ export function useGenerationComposer(
                 JSON.stringify({
                     inputs: form.data(),
                     uncertain: uncertain.value,
+                    intent,
                 }),
             );
         } catch {
@@ -125,6 +127,7 @@ export function useGenerationComposer(
     watch(
         fingerprint,
         () => {
+            intent = '';
             form.clearErrors();
             message.value = '';
             persistDraft();
@@ -175,6 +178,11 @@ export function useGenerationComposer(
                             quality: draft.quality,
                             reference_images: [...draft.reference_images],
                         });
+                        intent =
+                            'intent' in saved &&
+                            typeof saved.intent === 'string'
+                                ? saved.intent
+                                : '';
                         uncertain.value =
                             'uncertain' in saved && saved.uncertain === true;
                     }
@@ -190,12 +198,15 @@ export function useGenerationComposer(
 
     async function submit() {
         if (!canSubmit.value) return;
+        intent ||= crypto.randomUUID();
         uncertain.value = true;
+        persistDraft();
         let handled = false;
         form.transform(() => normalized.value);
         message.value = '';
         try {
             await form.post(store.url(), {
+                headers: { 'Idempotency-Key': intent },
                 onSuccess: (response, httpResponse) => {
                     handled = true;
                     if (
@@ -215,11 +226,14 @@ export function useGenerationComposer(
                     }
                     router.visit(show.url(response.id));
                 },
-                onError: () => {
+                onError: (errors) => {
                     handled = true;
                     uncertain.value = false;
-                    message.value =
-                        'Review the highlighted fields. Your draft has been preserved.';
+                    message.value = String(
+                        (errors as Record<string, string>).wallet ||
+                            'Review the highlighted fields. Your draft has been preserved.',
+                    );
+                    requestQuote();
                 },
                 onHttpException: (response) => {
                     handled = true;

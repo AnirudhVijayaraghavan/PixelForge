@@ -21,6 +21,7 @@ class CreateGenerationController extends Controller
                 GenerationSize::from($request->string('size')->toString()),
                 GenerationQuality::from($request->string('quality')->toString()),
                 $request->validated('reference_images', []),
+                $request->validated('intent'),
             );
         } catch (PixelforgeException) {
             return response()->json(['message' => 'Current pricing is unavailable. Please try again later.', 'code' => 'pricing_unavailable'], 503);

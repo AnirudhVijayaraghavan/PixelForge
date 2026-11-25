@@ -73,7 +73,20 @@ defineEmits<{ retry: [] }>();
                         ><span>${{ quote.maximum.customer_charge_usd }}</span>
                     </dd>
                 </div>
+                <div>
+                    <dt>Maximum credit reservation</dt>
+                    <dd class="font-mono">
+                        ${{ quote.maximum.customer_charge_usd }}
+                    </dd>
+                </div>
+                <div>
+                    <dt>Available credits</dt>
+                    <dd class="font-mono">${{ quote.available_usd }}</dd>
+                </div>
             </dl>
+            <p v-if="quote && !quote.affordable" role="status">
+                Add simulated credits to cover this reservation.
+            </p>
             <Button
                 v-if="error"
                 type="button"

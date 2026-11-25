@@ -26,6 +26,7 @@ work; provider testing keywords are optional controls for predictable scenarios.
   submission. Polling pauses in hidden tabs and stops for terminal work.
 - **Cost Inspector:** confirmed category usage, accepted rates, category costs,
   exact provider cost, 25% markup, actual customer charge, and estimate difference.
+- **Credit wallet:** confirm a simulated USD purchase, reserve the maximum before generation, and see the exact final debit and released credits.
 - **Admin financial reports:** daily, per-user, and daily per-user settlement
   totals; exact gross profit; paginated generation drill-down; independently
   fetched provider usage with explicit reconciliation status and freshness.
@@ -38,6 +39,14 @@ work; provider testing keywords are optional controls for predictable scenarios.
 Authenticated pages support responsive layouts, keyboard navigation, and the
 starter kit's light/dark/system preferences. Reference URLs are inputs to the
 provider contract; this app does not fetch or upload reference images.
+
+## Simulated USD credits
+
+Open **Credit wallet**, choose a $5, $10, $25 or $50 pack and confirm the simulated purchase. No card or real payment is involved. Studio shows your available credits and the maximum hold at the quoted rates. Each new generation must be able to reserve this full amount. The wallet lists purchases and exact generation debits with links to their details.
+
+Available credits equal purchases minus successful charges minus active holds. On success the existing settlement determines the debit and any unused hold becomes available. A definitive failure releases the hold. An uncertain submission keeps its hold while recovery works. If accepted rates rise beyond the funded hold, the app records the full actual charge, including a possible deficit. Earlier generations keep their original settlements and never debit a new wallet.
+
+Before rollout, review pending migrations and apply the wallet schema. Drain old HTTP and worker processes before opening wallet-funded admission. The updated workers can finish older generations. Existing users start with zero credits. See [accounting and recovery](docs/ARCHITECTURE.md) and [verification status](docs/VERIFICATION.md).
 
 ## Stack and structure
 
@@ -320,9 +329,7 @@ Cloud references: [workers](https://laravel.com/cloud/docs/workers),
 - Image URLs expire 24 hours after completion; images are not rehosted or stored.
 - Provider-key provenance is not stored per generation. Key rotation and activity
   outside this application must be accounted for when reconciling provider usage.
-- Credit wallets, purchases, payment processing, and an onboarding tour are
-  **not implemented**. Financial reports are local Phase 6 functionality awaiting
-  rollout; production acceptance remains separate.
+- Financial reporting and simulated credit wallets await rollout and production verification.
 - No authenticated screenshots were available for this README; none are invented.
 
 ## License metadata

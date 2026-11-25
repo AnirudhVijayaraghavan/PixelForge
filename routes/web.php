@@ -9,6 +9,7 @@ use App\Http\Controllers\GenerationShowController;
 use App\Http\Controllers\GenerationStatusesController;
 use App\Http\Controllers\QuoteGenerationController;
 use App\Http\Controllers\StudioController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,8 @@ Route::post('generations', CreateGenerationController::class)
     ->name('generations.store');
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::post('wallet/purchases', [WalletController::class, 'purchase'])->name('wallet.purchase');
     Route::get('studio', StudioController::class)->name('studio');
     Route::get('generations', GenerationIndexController::class)->name('generations.index');
     Route::post('generations/quote', QuoteGenerationController::class)->name('generations.quote');

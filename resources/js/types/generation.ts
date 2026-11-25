@@ -30,7 +30,14 @@ export type CalculatedPrice = {
     customer_charge_usd: string;
     provider_breakdown_usd: Record<TokenCategory, string>;
 };
+export type WalletBalances = {
+    settled: string;
+    reserved: string;
+    available: string;
+};
 export type GenerationQuote = {
+    affordable: boolean;
+    available_usd: string;
     currency: 'usd';
     estimate: CalculatedPrice;
     minimum: CalculatedPrice;
@@ -81,6 +88,7 @@ export type GenerationBilling = {
     rate_provenance: string;
 };
 export type GenerationDetail = Generation & {
+    credit_message: string | null;
     reference_images: string[];
     billing: GenerationBilling;
 };

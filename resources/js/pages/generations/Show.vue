@@ -78,6 +78,13 @@ const openImage = computed(() =>
                     />
                     <div class="space-y-3 border-t p-4">
                         <div aria-live="polite" class="space-y-2">
+                            <p
+                                v-if="current.credit_message"
+                                class="text-sm"
+                                role="status"
+                            >
+                                {{ current.credit_message }}
+                            </p>
                             <GenerationStatus :generation="current" />
                             <p
                                 class="text-sm leading-relaxed text-muted-foreground"

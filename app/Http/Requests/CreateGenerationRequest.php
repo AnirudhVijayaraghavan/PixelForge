@@ -30,6 +30,12 @@ class CreateGenerationRequest extends FormRequest
         $this->merge(['reference_images' => $references]);
     }
 
+    /** @return array<string,mixed> */
+    public function validationData(): array
+    {
+        return [...parent::validationData(), 'intent' => $this->header('Idempotency-Key')];
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', Generation::class) ?? false;
@@ -39,6 +45,7 @@ class CreateGenerationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...($this->routeIs('generations.store') ? ['intent' => ['required', 'uuid']] : []),
             'prompt' => ['bail', 'required', 'string', 'max:4000', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! mb_check_encoding($value, 'UTF-8')) {
                     $fail('The prompt must contain valid Unicode text.');

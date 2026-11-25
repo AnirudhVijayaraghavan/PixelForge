@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Generations\CreateGeneration;
+use App\Domain\Billing\WalletAccounting;
 use App\Domain\Generations\Enums\GenerationQuality;
 use App\Domain\Generations\Enums\GenerationSize;
 use App\Jobs\SubmitGeneration;
@@ -13,8 +14,20 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 require_once __DIR__.'/../Support/PixelforgeFixtures.php';
+
+beforeEach(function () {
+    $this->withHeader('Idempotency-Key', (string) Str::uuid());
+});
+
+function fundGenerationTestUser(User $user): User
+{
+    app(WalletAccounting::class)->purchase($user, '5', (string) Str::uuid());
+
+    return $user;
+}
 
 /** @return array{prompt: string, size: string, quality: string, reference_images: list<string>} */
 function validGenerationInput(): array
@@ -38,7 +51,7 @@ test('denies unauthenticated JSON creation before fetching provider pricing', fu
 
 test('persists an authorized server quote and immutable payload before dispatching submission', function (bool $verified) {
     Queue::fake([SubmitGeneration::class]);
-    $user = User::factory()->create(['email_verified_at' => $verified ? now() : null]);
+    $user = fundGenerationTestUser(User::factory()->create(['email_verified_at' => $verified ? now() : null]));
     $transactionLevel = DB::transactionLevel();
     Http::fake(function (Request $request) use ($transactionLevel) {
         expect(DB::transactionLevel())->toBe($transactionLevel);
@@ -66,7 +79,7 @@ test('persists an authorized server quote and immutable payload before dispatchi
 })->with(['verified' => true, 'unverified' => false]);
 
 test('enqueues on the database connection even when the global test queue is synchronous', function () {
-    $user = User::factory()->create();
+    $user = fundGenerationTestUser(User::factory()->create());
     Http::fake(['https://pixelforge.promptedit.dev/v1/pricing' => Http::response(pixelforgePricingFixture())]);
 
     $response = $this->actingAs($user)->postJson(route('generations.store'), validGenerationInput());
@@ -93,7 +106,7 @@ test('checks the create policy explicitly', function () {
 });
 
 test('rejects unsupported inputs before pricing or persistence', function (array $changes, string $field) {
-    $user = User::factory()->create();
+    $user = fundGenerationTestUser(User::factory()->create());
     Http::fake(['https://pixelforge.promptedit.dev/v1/pricing' => Http::response(pixelforgePricingFixture())]);
 
     $this->actingAs($user)->postJson(route('generations.store'), array_replace(validGenerationInput(), $changes))
@@ -121,7 +134,7 @@ test('accepts exactly 4000 Unicode characters and defaults omitted references to
     Queue::fake([SubmitGeneration::class]);
     Http::fake(['https://pixelforge.promptedit.dev/v1/pricing' => Http::response(pixelforgePricingFixture())]);
 
-    $response = $this->actingAs(User::factory()->create())->postJson(route('generations.store'), [
+    $response = $this->actingAs(fundGenerationTestUser(User::factory()->create()))->postJson(route('generations.store'), [
         'prompt' => str_repeat('🎨', 4000), 'size' => '1024x1024', 'quality' => 'low',
     ]);
 
@@ -144,13 +157,13 @@ test('returns a safe unavailable response and persists nothing when pricing cann
 
 test('rolls back generation and after-commit dispatch together', function () {
     Http::fake(['https://pixelforge.promptedit.dev/v1/pricing' => Http::response(pixelforgePricingFixture())]);
-    $user = User::factory()->create();
+    $user = fundGenerationTestUser(User::factory()->create());
 
     try {
         DB::transaction(function () use ($user): void {
             app(CreateGeneration::class)->handle(
                 $user, 'A lake', GenerationSize::Square,
-                GenerationQuality::Low, [],
+                GenerationQuality::Low, [], (string) Str::uuid(),
             );
             throw new RuntimeException('Rollback the outer application transaction.');
         });

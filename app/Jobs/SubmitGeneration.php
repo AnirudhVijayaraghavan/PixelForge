@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\Generations\ApplyGenerationSnapshot;
+use App\Domain\Billing\WalletAccounting;
 use App\Domain\Generations\Enums\SubmissionStatus;
 use App\Integrations\Pixelforge\PixelforgeClient;
 use App\Integrations\Pixelforge\PixelforgeException;
@@ -151,12 +152,16 @@ class SubmitGeneration implements ShouldQueue
                 $delay = max($backoff[min(4, max(0, $generation->submission_attempts - 1))], $exception->retryAfterSeconds ?? 0);
                 $generation->next_submission_attempt_at = now()->addSeconds($delay);
                 $generation->recovery_queued_until = now()->addSeconds($delay + 300);
-            } elseif ($exception->providerCode === 'daily_limit_exceeded') {
+            } elseif ($exception->providerCode === 'daily_limit_exceeded' && $generation->submission_attempts < self::MAX_SUBMISSIONS) {
                 $generation->next_submission_attempt_at = now()->utc()->addDay()->startOfDay()
                     ->max(now()->addSeconds($exception->retryAfterSeconds ?? 0));
             }
 
             $generation->save();
+
+            if ($generation->submission_status === SubmissionStatus::Rejected && $generation->next_submission_attempt_at === null) {
+                app(WalletAccounting::class)->close($generation, null);
+            }
 
             return $delay;
         });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Billing\WalletAccounting;
 use App\Domain\Generations\Enums\GenerationQuality;
 use App\Domain\Generations\Enums\GenerationSize;
 use App\Http\Requests\StudioRequest;
@@ -24,6 +25,7 @@ class StudioController extends Controller
         }
 
         return Inertia::render('studio/Index', [
+            'wallet' => app(WalletAccounting::class)->wallet($request->user())->summary(),
             'inputs' => [
                 'prompt' => $generation !== null ? $generation->prompt : '',
                 'size' => ($generation !== null ? $generation->size : GenerationSize::Square)->value,

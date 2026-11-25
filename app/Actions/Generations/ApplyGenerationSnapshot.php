@@ -6,6 +6,7 @@ use App\Domain\Billing\GenerationPricing;
 use App\Domain\Billing\PricingParameters;
 use App\Domain\Billing\ProviderRates;
 use App\Domain\Billing\TokenUsage;
+use App\Domain\Billing\WalletAccounting;
 use App\Domain\Generations\Enums\GenerationStatus;
 use App\Domain\Generations\Enums\SubmissionStatus;
 use App\Integrations\Pixelforge\PixelforgeGenerationData;
@@ -17,6 +18,8 @@ use UnexpectedValueException;
 
 final class ApplyGenerationSnapshot
 {
+    public function __construct(private readonly WalletAccounting $wallets) {}
+
     public function handle(string $generationId, PixelforgeGenerationData $snapshot): Generation
     {
         return DB::transaction(function () use ($generationId, $snapshot): Generation {
@@ -66,6 +69,10 @@ final class ApplyGenerationSnapshot
             /** Save succeeded first: the settlement's composite foreign key requires it. */
             $generation->save();
 
+            $this->wallets->accept($generation, $snapshot->rates);
+            if ($snapshot->status === GenerationStatus::Failed) {
+                $this->wallets->close($generation, null);
+            }
             if ($snapshot->status === GenerationStatus::Succeeded) {
                 $this->settle($generation);
             }
@@ -116,6 +123,7 @@ final class ApplyGenerationSnapshot
             $settlement->save();
         }
 
+        $this->wallets->close($generation, $settlement);
         if ($generation->settled_at === null || ! $generation->settled_at->equalTo($settlement->settled_at)) {
             $generation->settled_at = $settlement->settled_at;
             $generation->save();

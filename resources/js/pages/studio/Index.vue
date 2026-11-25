@@ -5,11 +5,16 @@ import GenerationComposer from '@/components/generations/GenerationComposer.vue'
 import { Button } from '@/components/ui/button';
 import { studio } from '@/routes';
 import { index } from '@/routes/generations';
-import type { GenerationInputs } from '@/types/generation';
+import { index as walletPage } from '@/routes/wallet';
+import type { WalletBalances, GenerationInputs } from '@/types/generation';
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Studio', href: studio() }] },
 });
-defineProps<{ inputs: GenerationInputs; reusing: boolean }>();
+defineProps<{
+    inputs: GenerationInputs;
+    reusing: boolean;
+    wallet: WalletBalances;
+}>();
 </script>
 <template>
     <div class="mx-auto w-full max-w-7xl min-w-0 space-y-8 p-4 sm:p-6 lg:p-8">
@@ -42,6 +47,17 @@ defineProps<{ inputs: GenerationInputs; reusing: boolean }>();
             Your previous inputs are ready to edit. Reusing a prompt does not
             create or charge a generation.
         </p>
+        <div
+            class="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4"
+        >
+            <p>
+                Available credits
+                <strong class="font-mono">${{ wallet.available }}</strong>
+            </p>
+            <Button as-child variant="outline"
+                ><Link :href="walletPage()">Buy simulated credits</Link></Button
+            >
+        </div>
         <GenerationComposer
             :key="JSON.stringify(inputs)"
             :inputs="inputs"

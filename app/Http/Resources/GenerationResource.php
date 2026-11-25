@@ -93,9 +93,35 @@ class GenerationResource extends JsonResource
 
         return [
             ...$summary,
+            'credit_message' => $this->creditMessage(),
             'reference_images' => $this->generation->reference_images,
             'billing' => $this->billing($summary['billing_state']),
         ];
+    }
+
+    private function creditMessage(): ?string
+    {
+        $hold = $this->generation->reservation;
+        if ($hold === null) {
+            return null;
+        }
+        if ($hold->state === 'released') {
+            return 'Reservation released. Nothing was charged.';
+        }
+        $amount = Money::fromNanodollars($hold->held);
+        if ($hold->state === 'active') {
+            $message = 'Credits reserved: $'.$amount->toUsd().'. No charge yet.';
+            if ($hold->maximum_unavailable || ($hold->accepted_maximum !== null && $hold->accepted_maximum > $hold->held)) {
+                $message .= ' Accepted pricing exceeds the hold. The final charge can reduce your available balance below zero.';
+            }
+
+            return $message;
+        }
+        $settlement = $this->generation->settlement ?? throw new LogicException('Missing captured settlement.');
+        $charge = Money::fromNanodollars($settlement->customer_charge_nanodollars);
+        $difference = $amount->subtract($charge);
+
+        return $difference->nanodollars() < 0 ? 'The actual charge exceeded the hold. Your wallet reflects the full settlement.' : 'Charged $'.$charge->toUsd().'. Unused credits released: $'.$difference->toUsd().'.';
     }
 
     /** @return array<string, mixed> */

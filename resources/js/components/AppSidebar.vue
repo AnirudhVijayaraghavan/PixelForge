@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, ChartColumn, Images, Sparkles } from '@lucide/vue';
+import { BookOpen, ChartColumn, Images, Sparkles, Wallet } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -19,6 +19,7 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { studio } from '@/routes';
 import { index } from '@/routes/generations';
 import { index as financialReports } from '@/routes/admin/financials';
+import { index as wallet } from '@/routes/wallet';
 import type { NavItem } from '@/types';
 
 const { isCurrentUrl } = useCurrentUrl();
@@ -31,6 +32,7 @@ const mainNavItems = computed<NavItem[]>(() => [
         isActive: isCurrentUrl(studio()),
     },
     { title: 'My Generations', href: index(), icon: Images },
+    { title: 'Credit wallet', href: wallet(), icon: Wallet },
     ...(page.props.can.viewFinancialReports
         ? [
               {

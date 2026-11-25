@@ -17,7 +17,7 @@ class GenerationFinancialController extends Controller
         Gate::authorize('viewFinancialReports');
 
         return Inertia::render('admin/financials/Show', [
-            'generation' => (new GenerationResource($generation->load('settlement')))->detail($request),
+            'generation' => (new GenerationResource($generation->load(['settlement', 'reservation'])))->detail($request),
             'provider_generation_id' => $generation->provider_generation_id,
             'user_name' => $generation->user->name,
         ]);

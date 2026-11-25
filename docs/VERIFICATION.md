@@ -421,3 +421,16 @@ tests/Feature/AdminFinancialReportsTest.php
 tests/Feature/ProviderUsageTest.php
 tests/Fixtures/pixelforge/usage.json
 ```
+
+## Phase 7 credit wallets
+
+Local wallet coverage uses the existing fail-closed SQLite memory database and provider fakes. Automated scenarios cover purchase confirmation and replay, wallet scoping, blocked ledger mutations, competing admission at the exact boundary, a one-nanodollar shortfall, accepted-rate exposure, settlement replay, historical cutover and recovery. Interleaving operations sequentially verifies accounting effects. SQLite does not exercise PostgreSQL row locks.
+
+| Check                                             | Status  | Evidence                                                                                                                                                                           |
+| ------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wallet accounting and authorization               | PASS    | 23 wallet cases, including constrained same-owner/amount settlement capture, a one-nanodollar shortfall, rate drift, rollback after debit insertion, and account closure.          |
+| Full local quality gates                          | PASS    | 464 Pest tests, 2,367 assertions. PHPStan level 7 reports zero errors. Pint, TypeScript, frontend formatting/lint and the production build passed.                                 |
+| Local migration status                            | PASS    | Read-only inspection shows the Phase 6 admin migration applied locally and the Phase 7 wallet migration pending. Development and production migrations were not run in this phase. |
+| Disposable PostgreSQL concurrency                 | NOT RUN | The test guard only supports SQLite memory. Actual concurrent creates, purchases/admissions, duplicate webhooks and polling races require a separately isolated PostgreSQL target. |
+| Production wallet migration, purchase and capture | NOT RUN | Deferred to release verification.                                                                                                                                                  |
+| Manual wallet browser workflow                    | NOT RUN | No interactive browser smoke test recorded.                                                                                                                                        |
