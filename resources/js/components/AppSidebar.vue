@@ -16,7 +16,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { dashboard, studio } from '@/routes';
+import { studio } from '@/routes';
 import { index } from '@/routes/generations';
 import type { NavItem } from '@/types';
 
@@ -26,7 +26,7 @@ const mainNavItems = computed<NavItem[]>(() => [
         title: 'Studio',
         href: studio(),
         icon: Sparkles,
-        isActive: isCurrentUrl(studio()) || isCurrentUrl(dashboard()),
+        isActive: isCurrentUrl(studio()),
     },
     { title: 'My Generations', href: index(), icon: Images },
 ]);

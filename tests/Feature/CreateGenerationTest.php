@@ -36,9 +36,9 @@ test('denies unauthenticated JSON creation before fetching provider pricing', fu
     $this->assertDatabaseCount('generations', 0);
 });
 
-test('persists an authorized server quote and immutable payload before dispatching submission', function () {
+test('persists an authorized server quote and immutable payload before dispatching submission', function (bool $verified) {
     Queue::fake([SubmitGeneration::class]);
-    $user = User::factory()->create();
+    $user = User::factory()->create(['email_verified_at' => $verified ? now() : null]);
     $transactionLevel = DB::transactionLevel();
     Http::fake(function (Request $request) use ($transactionLevel) {
         expect(DB::transactionLevel())->toBe($transactionLevel);
@@ -63,7 +63,7 @@ test('persists an authorized server quote and immutable payload before dispatchi
         && $job->connection === 'database' && $job->queue === 'pixelforge' && $job->afterCommit === true);
     Queue::assertPushed(SubmitGeneration::class, 1);
     Http::assertSentCount(1);
-});
+})->with(['verified' => true, 'unverified' => false]);
 
 test('enqueues on the database connection even when the global test queue is synchronous', function () {
     $user = User::factory()->create();

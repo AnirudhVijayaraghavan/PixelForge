@@ -81,6 +81,23 @@ test('denies cross-user detail cost and status access without exposing partial r
     Http::assertNothingSent();
 });
 
+test('unverified users can view their own history and exact billing details', function () {
+    $user = User::factory()->unverified()->create();
+    $generation = completedExperienceGeneration($user);
+
+    $this->actingAs($user)->get(route('generations.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('generations.data.0.id', $generation->id));
+
+    $this->get(route('generations.show', $generation))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('generation.billing.customer_charge_usd', '0.467343750'));
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+    Http::assertNothingSent();
+});
+
 test('explicitly checks workspace collection policies', function () {
     $this->actingAs(User::factory()->create());
     Gate::before(fn (User $user, string $ability): ?bool => in_array($ability, ['viewAny', 'create'], true) ? false : null);

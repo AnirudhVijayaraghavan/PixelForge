@@ -7,10 +7,11 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $user = User::factory()->create();
+test('dashboard redirects authenticated users to studio without requiring verification', function (bool $verified) {
+    $user = User::factory()->create(['email_verified_at' => $verified ? now() : null]);
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
-});
+    $response->assertRedirect(route('studio'));
+    $this->get(route('studio'))->assertOk();
+})->with(['verified' => true, 'unverified' => false]);

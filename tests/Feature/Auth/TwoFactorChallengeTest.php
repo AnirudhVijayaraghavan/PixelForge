@@ -33,3 +33,21 @@ test('two factor challenge can be rendered', function () {
             ->component('auth/TwoFactorChallenge'),
         );
 });
+
+test('completing two factor authentication lands in studio', function () {
+    $user = User::factory()->unverified()->withTwoFactor()->create();
+
+    $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertRedirect(route('two-factor.login'));
+
+    $this->assertGuest();
+
+    $this->post(route('two-factor.login.store'), [
+        'recovery_code' => 'recovery-code-1',
+    ])->assertRedirect(route('studio', absolute: false));
+
+    $this->assertAuthenticatedAs($user);
+    $this->get(route('studio'))->assertOk();
+});
