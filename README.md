@@ -40,6 +40,14 @@ Authenticated pages support responsive layouts, keyboard navigation, and the
 starter kit's light/dark/system preferences. Reference URLs are inputs to the
 provider contract; this app does not fetch or upload reference images.
 
+## First visit
+
+![Local browser preview of the public Pixelforge Studio landing page and original registration study](docs/images/studio-landing.png)
+
+Guests can explore the print study on the landing page, try the actual size and quality controls, and read how a hold becomes a final charge. The artwork illustrates the interface. Pixelforge returns simulated placeholders. Signed-in visits to the home page open Studio.
+
+A user with empty history can take a five-step guide or skip it. **Help · Studio tour** replays it. The guide remembers the choice for this account and guide version in the current browser. In My Generations, the gallery fits the entire image inside each card. The detail page offers a larger preview, the original settings, and the Cost Inspector, including after the image URL expires.
+
 ## Simulated USD credits
 
 Open **Credit wallet**, choose a $5, $10, $25 or $50 pack and confirm the simulated purchase. No card or real payment is involved. Studio shows your available credits and the maximum hold at the quoted rates. Each new generation must be able to reserve this full amount. The wallet lists purchases and exact generation debits with links to their details.

@@ -74,7 +74,7 @@ defineEmits<{ retry: [] }>();
                     </dd>
                 </div>
                 <div>
-                    <dt>Maximum credit reservation</dt>
+                    <dt>Maximum expected reservation</dt>
                     <dd class="font-mono">
                         ${{ quote.maximum.customer_charge_usd }}
                     </dd>
@@ -101,8 +101,8 @@ defineEmits<{ retry: [] }>();
                 <Info class="mt-0.5 size-4 shrink-0" />
                 <p>
                     Final cost depends on actual token usage. Pricing can change
-                    before provider acceptance; this range is an estimate, not a
-                    guaranteed maximum.
+                    before provider acceptance. A rate increase can take the
+                    final charge above this hold. Unused credits are released.
                 </p>
             </div>
             <div class="flex gap-2 text-xs text-muted-foreground">

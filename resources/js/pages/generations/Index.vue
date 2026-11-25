@@ -33,7 +33,8 @@ const navigating = ref(false);
                     My Generations
                 </h1>
                 <p class="mt-2 text-sm text-muted-foreground">
-                    Every idea, its result, and exactly what it cost.
+                    Review your images, reuse a prompt, or open the Cost
+                    Inspector.
                 </p>
             </div>
             <Button as-child
@@ -80,7 +81,9 @@ const navigating = ref(false);
                 class="mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary"
                 ><Images class="size-6"
             /></span>
-            <h2 class="text-xl font-semibold">A space for your next idea</h2>
+            <h2 class="text-xl font-semibold">
+                Your generation history starts here
+            </h2>
             <p
                 class="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground"
             >

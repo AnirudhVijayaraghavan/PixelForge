@@ -29,6 +29,15 @@ function completedExperienceGeneration(User $user, array $changes = []): Generat
     return app(ApplyGenerationSnapshot::class)->handle($generation->id, PixelforgeGenerationData::fromArray($snapshot));
 }
 
+test('offers the first-use guide based only on the signed-in users own history', function () {
+    $user = User::factory()->create();
+    Generation::factory()->create();
+    $this->actingAs($user)->get(route('studio'))->assertInertia(fn (Assert $page) => $page->where('firstUse', true));
+    Generation::factory()->for($user)->create();
+    $this->get(route('studio'))->assertInertia(fn (Assert $page) => $page->where('firstUse', false));
+    Http::assertNothingSent();
+});
+
 test('protects every workspace read and quote route from guests', function (string $route, bool $json) {
     $generation = Generation::factory()->create();
     if ($route === 'generations.quote') {

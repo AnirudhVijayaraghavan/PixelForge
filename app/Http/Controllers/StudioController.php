@@ -32,6 +32,7 @@ class StudioController extends Controller
                 'quality' => ($generation !== null ? $generation->quality : GenerationQuality::Medium)->value,
                 'reference_images' => $generation !== null ? $generation->reference_images : [],
             ],
+            'firstUse' => ! $request->user()->generations()->exists(),
             'reusing' => $generation !== null,
         ]);
     }

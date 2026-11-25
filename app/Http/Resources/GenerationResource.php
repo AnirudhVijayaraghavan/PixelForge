@@ -180,9 +180,9 @@ class GenerationResource extends JsonResource
         }
 
         return match ($status) {
-            'pending' => 'Your request is saved and waiting for the submission worker.',
+            'pending' => 'Your request is saved and waiting to be sent.',
             'submitting' => 'Sending your saved request to Pixelforge.',
-            'retrying' => 'Submission will retry after the provider limit clears. The final charge is pending.',
+            'retrying' => 'Pixelforge is busy or has reached a request limit. Studio will retry this saved request.',
             'uncertain' => 'The provider may have accepted this request. We are verifying its status; do not submit it again.',
             'rejected' => match ($this->generation->submission_error_code) {
                 'content_policy_violation' => 'The provider declined this prompt under its content policy. You were not charged.',
@@ -191,7 +191,7 @@ class GenerationResource extends JsonResource
             },
             'queued' => 'Accepted by Pixelforge and waiting to start.',
             'processing' => 'Your image is being created. Detailed generations can take 60–90 seconds.',
-            'succeeded' => 'Your image is ready. Final billing uses confirmed token usage.',
+            'succeeded' => 'Generation completed. Final billing uses confirmed token usage.',
             'failed' => 'The provider could not complete this image. You were not charged.',
             default => 'The latest status is being verified.',
         };

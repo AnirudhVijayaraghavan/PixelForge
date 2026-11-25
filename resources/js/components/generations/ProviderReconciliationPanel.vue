@@ -123,7 +123,12 @@ defineEmits<{ refresh: [] }>();
             minute, or longer when Retry-After requires it; snapshots become
             stale after 10 minutes.
         </p>
-        <div class="overflow-x-auto">
+        <div
+            class="max-w-full overflow-x-auto focus-visible:outline-ring"
+            role="region"
+            aria-label="Daily reconciliation comparison"
+            tabindex="0"
+        >
             <table class="w-full text-sm">
                 <caption class="sr-only">
                     Daily provider reconciliation; difference is local minus

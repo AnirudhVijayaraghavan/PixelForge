@@ -129,15 +129,17 @@ const examples = [
                         />
                     </CardContent>
                 </Card>
-                <GenerationOptions
-                    v-model:size="form.size"
-                    v-model:quality="form.quality"
-                    :errors="form.errors"
-                />
-                <ReferenceImageInputs
-                    v-model="form.reference_images"
-                    :errors="form.errors"
-                />
+                <div id="studio-settings" class="space-y-6">
+                    <GenerationOptions
+                        v-model:size="form.size"
+                        v-model:quality="form.quality"
+                        :errors="form.errors"
+                    />
+                    <ReferenceImageInputs
+                        v-model="form.reference_images"
+                        :errors="form.errors"
+                    />
+                </div>
             </fieldset>
             <div class="space-y-3">
                 <p
@@ -168,7 +170,10 @@ const examples = [
                 </div>
             </div>
         </div>
-        <aside class="min-w-0 space-y-4 xl:sticky xl:top-6 xl:self-start">
+        <aside
+            id="studio-price"
+            class="min-w-0 space-y-4 xl:sticky xl:top-6 xl:self-start"
+        >
             <PriceEstimate
                 :quote="quote"
                 :loading="quoteLoading"

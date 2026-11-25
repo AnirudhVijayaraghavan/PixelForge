@@ -10,7 +10,12 @@ defineProps<{
 </script>
 
 <template>
-    <div class="overflow-x-auto rounded-xl border">
+    <div
+        class="max-w-full overflow-x-auto rounded-xl border focus-visible:outline-ring"
+        role="region"
+        aria-label="Financial totals"
+        tabindex="0"
+    >
         <table class="w-full text-sm">
             <caption class="sr-only">
                 {{

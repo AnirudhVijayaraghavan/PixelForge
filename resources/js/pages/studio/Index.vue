@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowUpRight } from '@lucide/vue';
+import StudioGuide from '@/components/StudioGuide.vue';
 import GenerationComposer from '@/components/generations/GenerationComposer.vue';
 import { Button } from '@/components/ui/button';
 import { studio } from '@/routes';
@@ -13,6 +14,7 @@ defineOptions({
 defineProps<{
     inputs: GenerationInputs;
     reusing: boolean;
+    firstUse: boolean;
     wallet: WalletBalances;
 }>();
 </script>
@@ -37,7 +39,8 @@ defineProps<{
                 </p>
             </div>
             <Button variant="outline" as-child
-                ><Link :href="index()">My Generations <ArrowUpRight /></Link
+                ><Link id="studio-history" :href="index()"
+                    >My Generations <ArrowUpRight /></Link
             ></Button>
         </header>
         <p
@@ -58,6 +61,18 @@ defineProps<{
                 ><Link :href="walletPage()">Buy simulated credits</Link></Button
             >
         </div>
+        <StudioGuide
+            :key="$page.props.auth.user.id"
+            :user-id="$page.props.auth.user.id"
+            :first-use="firstUse"
+        />
+        <p id="studio-lifecycle" class="text-sm text-muted-foreground">
+            {{
+                firstUse ? 'Start with a prompt or try an example below. ' : ''
+            }}After submission, follow queued and processing requests in My
+            Generations. A successful image has a Cost Inspector; a confirmed
+            failure is free.
+        </p>
         <GenerationComposer
             :key="JSON.stringify(inputs)"
             :inputs="inputs"

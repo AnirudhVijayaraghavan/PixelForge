@@ -434,3 +434,48 @@ Local wallet coverage uses the existing fail-closed SQLite memory database and p
 | Disposable PostgreSQL concurrency                 | NOT RUN | The test guard only supports SQLite memory. Actual concurrent creates, purchases/admissions, duplicate webhooks and polling races require a separately isolated PostgreSQL target. |
 | Production wallet migration, purchase and capture | NOT RUN | Deferred to release verification.                                                                                                                                                  |
 | Manual wallet browser workflow                    | NOT RUN | No interactive browser smoke test recorded.                                                                                                                                        |
+
+## Phase 8 product experience
+
+| Check                                                             | Result  | Evidence                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laravel tests, static analysis and formatting                     | PASS    | 465 Pest tests / 2,393 assertions. PHPStan zero errors. Composer test and lint:check passed. Landing asserts the guest Inertia page. Studio tests cover first-use eligibility with another user's history present.                                                                                                                                                              |
+| Frontend gates                                                    | PASS    | TypeScript, formatting, lint (88 files) and Vite production build passed. The existing optional fontaine warning remains. Dependency manifests and lockfiles have no Phase 8 changes.                                                                                                                                                                                           |
+| Responsive browser smoke                                          | PASS    | Headless Chrome with the production assets and Laravel-rendered pages from an isolated SQLite memory test. At 320, 375, 768, 1024 and 1440 CSS pixels: landing, Studio, empty and populated galleries, detail, wallet and admin reports had no document-level horizontal overflow. No JavaScript console errors or exceptions observed.                                         |
+| Guide, image and error states                                     | PASS    | Chrome verified that an unanswered invitation stays dismissed on a later visit and exercised Next/Back, Skip, Finish, replay, reload, separate accounts, missing highlight target, Escape and focus return. Enlarged preview opened at 320 and 1440. A broken fixture and expired fixture showed their distinct messages. Simulated pricing unavailability disabled submission. |
+| Hero fallback and motion                                          | PASS    | The layer control worked with WebGL disabled. Reduced motion produced a zero-duration transform transition. Dark-mode initialization and static artwork worked. Desktop and mobile screenshots were inspected; the README image is the guest landing page captured locally.                                                                                                     |
+| Local performance sample                                          | PASS    | One unthrottled 1440 px localhost headless Chrome navigation recorded LCP 932 ms and CLS 0 through the first interaction. A DevTools click on the layer button plus two animation frames took 20 ms wall time. This is a local interaction sample, not field INP.                                                                                                               |
+| Physical devices, assistive technology and production performance | NOT RUN | Screen-reader speech, physical touch/GPU load, Safari, production LCP/CLS/INP and live end-to-end acceptance remain manual. See MANUAL_TESTING.md.                                                                                                                                                                                                                              |
+
+The Welcome JS entry changed from 28,505 bytes (6,010 gzip) to 6,902 bytes (2,916 gzip). Its scoped CSS is 6,961 bytes (2,153 gzip). The original static SVG is 27,931 bytes (5,188 gzip). These are file sizes and local gzip measurements. Entry size excludes shared application modules, including the reused settings controls, and total transfer depends on compression and cache state. No Three.js, Vue renderer or motion package was added.
+
+Browser verification used an isolated Chrome profile, synthetic test records and a local image fixture, with external requests blocked. It exercised rendered UI and mock pricing failure. Production authentication, provider delivery, wallet accounting and reconciliation still require Phase 9 release verification. No real generation or purchase was triggered during the browser checks.
+
+### Phase 8 files
+
+- `README.md`
+- `app/Http/Controllers/StudioController.php`
+- `app/Http/Resources/GenerationResource.php`
+- `docs/ARCHITECTURE.md`
+- `docs/MANUAL_TESTING.md`
+- `docs/VERIFICATION.md`
+- `docs/images/studio-landing.png`
+- `public/art/registration-study.svg`
+- `resources/js/components/RegistrationStudy.vue`
+- `resources/js/components/StudioGuide.vue`
+- `resources/js/components/generations/FinancialTable.vue`
+- `resources/js/components/generations/GenerationCard.vue`
+- `resources/js/components/generations/GenerationComposer.vue`
+- `resources/js/components/generations/GenerationImage.vue`
+- `resources/js/components/generations/GenerationOptions.vue`
+- `resources/js/components/generations/PriceEstimate.vue`
+- `resources/js/components/generations/ProviderReconciliationPanel.vue`
+- `resources/js/composables/useImageExpiry.ts`
+- `resources/js/pages/Welcome.vue`
+- `resources/js/pages/admin/financials/Index.vue`
+- `resources/js/pages/generations/Index.vue`
+- `resources/js/pages/generations/Show.vue`
+- `resources/js/pages/studio/Index.vue`
+- `resources/js/pages/wallet/Index.vue`
+- `tests/Feature/ExampleTest.php`
+- `tests/Feature/GenerationExperienceTest.php`

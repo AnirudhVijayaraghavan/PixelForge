@@ -33,7 +33,7 @@ const qualities = [
                         :value="option.value"
                         class="peer sr-only"
                     /><span
-                        class="flex h-full flex-col items-center gap-2 rounded-xl border bg-card p-3 text-center transition-colors peer-checked:border-primary peer-checked:bg-primary/5 peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                        class="flex h-full flex-col items-center gap-2 rounded-xl border bg-card px-1 py-3 text-center transition-colors peer-checked:border-primary peer-checked:bg-primary/5 peer-focus-visible:ring-2 peer-focus-visible:ring-ring sm:px-3"
                         ><span class="flex h-7 items-center"
                             ><span
                                 :class="[
@@ -43,9 +43,10 @@ const qualities = [
                         ><span class="text-xs font-medium">{{
                             option.title
                         }}</span
-                        ><span class="text-[10px] text-muted-foreground">{{
-                            option.value.replace('x', ' × ')
-                        }}</span></span
+                        ><span
+                            class="text-[10px] break-words text-muted-foreground"
+                            >{{ option.value.replace('x', ' × ') }}</span
+                        ></span
                     ></label
                 >
             </div>

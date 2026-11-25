@@ -108,7 +108,7 @@ function paginate(
             class="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-4"
             @submit.prevent="applyFilters"
         >
-            <div class="space-y-2">
+            <div class="max-w-full min-w-0 space-y-2">
                 <Label for="report-start">Start date · UTC</Label
                 ><Input
                     id="report-start"
@@ -122,7 +122,7 @@ function paginate(
                     :message="filtersForm.errors.start_date"
                 />
             </div>
-            <div class="space-y-2">
+            <div class="max-w-full min-w-0 space-y-2">
                 <Label for="report-end">End date · UTC</Label
                 ><Input
                     id="report-end"

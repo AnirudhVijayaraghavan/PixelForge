@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { useNow } from '@vueuse/core';
+import { useImageExpiry } from '@/composables/useImageExpiry';
 import { ArrowLeft, ExternalLink, RotateCcw } from '@lucide/vue';
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import { computed } from 'vue';
 import GenerationCostBreakdown from '@/components/generations/GenerationCostBreakdown.vue';
 import GenerationImage from '@/components/generations/GenerationImage.vue';
@@ -28,14 +35,9 @@ const { records, error, refresh } = useGenerationPolling(
     true,
 );
 const current = computed(() => records.value[0] ?? props.generation);
-const now = useNow({ interval: 1000 });
+const expired = useImageExpiry(() => current.value.image_url_expires_at);
 const openImage = computed(() =>
-    current.value.image_url &&
-    (!current.value.image_url_expires_at ||
-        new Date(current.value.image_url_expires_at).getTime() >
-            now.value.getTime())
-        ? current.value.image_url
-        : null,
+    current.value.image_url && !expired.value ? current.value.image_url : null,
 );
 </script>
 <template>
@@ -68,15 +70,38 @@ const openImage = computed(() =>
             ></Alert
         >
         <div
-            class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
+            class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"
         >
             <div class="min-w-0 space-y-6">
                 <div class="overflow-hidden rounded-xl border bg-card">
                     <GenerationImage
                         :generation="current"
-                        class="aspect-square w-full"
+                        class="w-full"
+                        :style="{ aspectRatio: current.size.replace('x', '/') }"
                     />
                     <div class="space-y-3 border-t p-4">
+                        <Dialog v-if="openImage"
+                            ><DialogTrigger as-child
+                                ><Button type="button" variant="outline"
+                                    >Enlarge preview</Button
+                                ></DialogTrigger
+                            >
+                            <DialogContent
+                                class="max-h-[94dvh] overflow-y-auto motion-reduce:animate-none sm:max-w-5xl"
+                                ><DialogTitle>Image preview</DialogTitle
+                                ><DialogDescription class="line-clamp-2">{{
+                                    current.prompt
+                                }}</DialogDescription
+                                ><GenerationImage
+                                    :generation="current"
+                                    class="max-h-[72dvh] w-full"
+                                    :style="{
+                                        aspectRatio: current.size.replace(
+                                            'x',
+                                            '/',
+                                        ),
+                                    }" /></DialogContent
+                        ></Dialog>
                         <div aria-live="polite" class="space-y-2">
                             <p
                                 v-if="current.credit_message"

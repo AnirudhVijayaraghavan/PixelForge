@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 
-test('returns a successful response', function () {
+test('guests see the public landing page', function () {
     $response = $this->get(route('home'));
 
-    $response->assertOk();
+    $response->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->component('Welcome')->where('auth.user', null));
 });
 
 test('authenticated home visits go to studio without a redirect loop', function (bool $verified) {

@@ -32,6 +32,11 @@ const form = useForm({
     confirmed: false,
 });
 const storageKey = 'pixelforge:purchase:' + usePage().props.auth.user.id;
+const descriptions = {
+    available: 'Ready for a new reservation.',
+    reserved: 'Held for open requests until their outcome is known.',
+    settled: 'Purchased credits less completed generation charges.',
+};
 const feedback = ref('');
 function buy() {
     if (form.processing || !form.confirmed) return;
@@ -70,8 +75,20 @@ function buy() {
             <div v-for="(amount, label) in balances" :key="label">
                 <dt class="text-muted-foreground capitalize">{{ label }}</dt>
                 <dd class="font-mono break-all tabular-nums">${{ amount }}</dd>
+                <dd class="mt-1 text-xs text-muted-foreground">
+                    {{ descriptions[label] }}
+                </dd>
             </div>
         </dl>
+        <p
+            v-if="balances.available.startsWith('-')"
+            role="status"
+            class="rounded-lg border p-3 text-sm"
+        >
+            Your available balance is below zero. Accepted provider pricing can
+            exceed an earlier hold. Review the generation charge in your
+            activity and add simulated credits before submitting again.
+        </p>
         <Card
             ><CardHeader><CardTitle>Buy credits</CardTitle></CardHeader
             ><CardContent>

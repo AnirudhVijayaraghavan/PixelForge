@@ -733,3 +733,18 @@ exact observed financial totals, confirmed defects/fixes/retests, quality comman
 and their current results, blocked/not-run scenarios, remaining live-provider and
 production concurrency checks, and deployment blockers. Do not produce a final
 application acceptance claim while material requirements remain unverified.
+
+## Phase 8 browser and accessibility checks
+
+Use a guest session and two separate test accounts. Use existing generations for preview checks. The guide and landing preview require no provider requests or purchases. The local Chrome fixture results are in VERIFICATION.md. Record each human result independently.
+
+| ID   | Action                                                                                                                      | Expected                                                                                                                                           | Human result |
+| ---- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| UX-1 | Visit home as guest and signed-in user. Follow navigation, registration and login with the keyboard.                        | Guest sees the public page. Authenticated home opens Studio. Section and account links are reachable.                                              | NOT RUN      |
+| UX-2 | Change the proof layers with keyboard and touch. Try the sample size and quality controls under reduced motion.             | Static art remains intact, selected settings are announced, no network generation.                                                                 | NOT RUN      |
+| UX-3 | Open the invitation in empty Studio. Use Next, Back, Escape and replay Help. Finish, reload and switch accounts.            | Five steps; focus stays in the open dialog and returns to Help. Each account remembers its own decision.                                           | NOT RUN      |
+| UX-4 | At 320/375/768/1024/1440 px check gallery and enlarged landscape/portrait previews. Use a broken and expired fixture.       | Full native image proportions, explicit fallback, prompt and costs still readable.                                                                 | NOT RUN      |
+| UX-5 | Inspect zero credits, an active hold, failure, success and a deficit using prepared test records. Open reports as an admin. | Estimate, reservation, available balance, actual charge and release are distinct. Monetary strings are exact. Scroll wide tables using a keyboard. | NOT RUN      |
+| UX-6 | Use VoiceOver/Safari and NVDA, both themes, 200% zoom and a physical phone.                                                 | Clear landmarks and form names, audible step changes, usable targets and focus indicators, reachable actions and legible contrast.                 | NOT RUN      |
+
+For a failure, record browser/version, viewport, theme, action, observed result and non-secret evidence in the matrix. Keep production verification for Phase 9.

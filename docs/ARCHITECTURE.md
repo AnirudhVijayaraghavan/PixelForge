@@ -1,6 +1,6 @@
 # Pixelforge Studio architecture
 
-Through Phase 7: provider submission, signed webhooks, atomic settlement, bounded
+Through Phase 8: provider submission, signed webhooks, atomic settlement, bounded
 recovery, Studio/gallery/Cost Inspector, and admin financial reporting. Deployment
 exists; live financial verification is deferred to Phase 9. Wallet-funded generation starts at Phase 7 rollout.
 
@@ -444,3 +444,11 @@ Creation takes the browser's Idempotency-Key UUID, checks for replay, prices out
 The snapshot action computes the accepted maximum from the frozen token bounds and accepted rates. If the entire increase is affordable it enlarges the hold. Otherwise the original hold stays active, and the recorded accepted maximum exposes the shortfall. A hypothetical maximum outside supported precision is flagged for review. Terminal success copies the authoritative settlement amount into one wallet debit, closes the hold, and updates both balances in the same transaction. The ledger stores positive amounts; purchase rows add and capture rows subtract. The original quote and final held amount remain auditable. Actual charges can exceed the hold, leaving an explicit deficit and blocking new unaffordable submissions. Financial reports still aggregate settlements.
 
 Confirmed terminal failures and definitive submission rejections release the hold in the same transaction. Retryable overload, an eligible next-day quota retry, worker death, ambiguous POST, and exhausted unknown outcomes retain their holds. Recovery uses the original generation/key and the existing scheduler. For unresolved holds, investigate the provider identity and recover a trusted snapshot; elapsed time alone cannot establish a free failure. There is no automatic expiry. Deploy the schema first, then switch HTTP and queue workers together and drain old workers before admitting wallet-funded work. An older worker cannot capture wallet debits.
+
+## Landing, first use and image presentation
+
+The public Welcome page composes a static vector print with three CSS perspective layers. Hover or the two-state button changes their transforms. Reduced-motion preferences suppress transitions. The art has intrinsic dimensions, loads from the same origin, and requires no WebGL context, animation loop or renderer cleanup. Native Three.js would add a renderer and asset lifecycle. A Vue integration would add another dependency for the same three planes. The public component stays with the Welcome page. Its settings preview uses the real GenerationOptions control and local state.
+
+Studio uses one user-scoped existence query to offer its guide to people with empty history. The native modal contains the controls and step descriptions. Its target highlight is optional. Escape and Skip dismiss it; Help reopens it. Browser storage uses `pixelforge:studio-guide:v1:<user-id>` for the offered, skipped and finished states. Leaving the first invitation unanswered still leaves Help available. A new device, cleared storage or unavailable storage can offer the guide again. Neither navigation through the guide nor the public preview submits a job or purchases credits.
+
+Gallery cards use a consistent frame with object-contain; detail and enlarged views preserve the generation aspect ratio. Skeletons sit behind the image during loading. A signed URL receives a deadline timer that is cleared on unmount and checked again on visibility change. Broken and expired previews retain the prompt and billing history. Studio and Wallet render the existing server amounts as strings. Reporting tables keep horizontal scrolling within a keyboard-focusable region.

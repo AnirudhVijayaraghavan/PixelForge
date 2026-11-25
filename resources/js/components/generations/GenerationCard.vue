@@ -12,7 +12,7 @@ defineProps<{ generation: Generation }>();
 </script>
 <template>
     <article
-        class="group min-w-0 overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/30"
+        class="group min-w-0 overflow-hidden rounded-xl border bg-card shadow-sm focus-within:border-primary hover:shadow-md motion-safe:transition-shadow"
     >
         <Link
             :href="show(generation.id)"
@@ -20,7 +20,7 @@ defineProps<{ generation: Generation }>();
             :aria-label="`View generation: ${generation.prompt_excerpt}`"
             ><GenerationImage
                 :generation="generation"
-                class="aspect-[4/3] w-full border-b [&_img]:object-cover"
+                class="aspect-[4/3] w-full border-b"
         /></Link>
         <div class="space-y-4 p-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
