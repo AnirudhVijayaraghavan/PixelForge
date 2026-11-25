@@ -19,6 +19,7 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            can: { viewFinancialReports: boolean };
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

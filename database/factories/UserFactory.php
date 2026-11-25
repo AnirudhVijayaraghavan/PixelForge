@@ -28,6 +28,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'is_admin' => false,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
@@ -47,8 +48,14 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model has two-factor authentication configured.
+     * Grant the protected capability for trusted test setup only.
      */
+    public function admin(): static
+    {
+        return $this->state(fn (): array => ['is_admin' => true]);
+    }
+
+    /** Indicate that the model has two-factor authentication configured. */
     public function withTwoFactor(): static
     {
         return $this->state(fn (array $attributes) => [

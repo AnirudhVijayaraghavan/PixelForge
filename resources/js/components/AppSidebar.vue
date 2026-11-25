@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Images, Sparkles } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { BookOpen, ChartColumn, Images, Sparkles } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -18,9 +18,11 @@ import {
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { studio } from '@/routes';
 import { index } from '@/routes/generations';
+import { index as financialReports } from '@/routes/admin/financials';
 import type { NavItem } from '@/types';
 
 const { isCurrentUrl } = useCurrentUrl();
+const page = usePage();
 const mainNavItems = computed<NavItem[]>(() => [
     {
         title: 'Studio',
@@ -29,6 +31,15 @@ const mainNavItems = computed<NavItem[]>(() => [
         isActive: isCurrentUrl(studio()),
     },
     { title: 'My Generations', href: index(), icon: Images },
+    ...(page.props.can.viewFinancialReports
+        ? [
+              {
+                  title: 'Financial reports',
+                  href: financialReports(),
+                  icon: ChartColumn,
+              },
+          ]
+        : []),
 ]);
 
 const footerNavItems: NavItem[] = [

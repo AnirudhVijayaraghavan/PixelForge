@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\FinancialReportController;
+use App\Http\Controllers\Admin\GenerationFinancialController;
+use App\Http\Controllers\Admin\RefreshReconciliationController;
 use App\Http\Controllers\CreateGenerationController;
 use App\Http\Controllers\GenerationIndexController;
 use App\Http\Controllers\GenerationShowController;
@@ -34,3 +37,9 @@ Route::middleware('auth')->group(function (): void {
 });
 
 require __DIR__.'/settings.php';
+
+Route::middleware(['auth', 'can:viewFinancialReports'])->prefix('admin/financials')->name('admin.financials.')->group(function (): void {
+    Route::get('/', FinancialReportController::class)->name('index');
+    Route::post('reconciliation', RefreshReconciliationController::class)->name('refresh');
+    Route::get('generations/{generation}', GenerationFinancialController::class)->whereUuid('generation')->name('show');
+});

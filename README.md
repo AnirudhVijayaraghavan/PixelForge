@@ -26,6 +26,9 @@ work; provider testing keywords are optional controls for predictable scenarios.
   submission. Polling pauses in hidden tabs and stops for terminal work.
 - **Cost Inspector:** confirmed category usage, accepted rates, category costs,
   exact provider cost, 25% markup, actual customer charge, and estimate difference.
+- **Admin financial reports:** daily, per-user, and daily per-user settlement
+  totals; exact gross profit; paginated generation drill-down; independently
+  fetched provider usage with explicit reconciliation status and freshness.
 - **Authentication:** registration, sessions, password reset, email verification,
   two-factor authentication, passkeys, and account settings. Studio is the default
   landing page; its generation workflows do not require verified email.
@@ -119,6 +122,69 @@ has no successful settlement and costs zero.
 
 The official high-quality landscape example is covered exactly in tests:
 provider **0.373875000 USD**, customer **0.467343750 USD**.
+
+## Admin financial reporting and reconciliation
+
+Phase 6 is implemented in this checkout; the live application needs the reviewed
+admin migration and a separately approved release before this feature appears.
+Production financial verification is deferred to Phase 9 and is not claimed here.
+
+Admins can open `/admin/financials` to inspect customer charges, provider costs,
+gross profit, succeeded counts, and confirmed tokens. Reports filter by an
+inclusive UTC completion-date range of at most 92 days. Financial values come
+only from successful `GenerationSettlement` records. Failed generations contribute
+zero; missing successful settlements are flagged instead of shown as free.
+
+Report totals use Brick Math arbitrary-precision integer accumulation in chunks
+of 500 selected settlement rows. Aggregate totals can exceed the per-record
+BIGINT limit without SQL SUM overflow or floating conversion. Daily groups are
+bounded by 92 dates; user/day-user tables paginate 15 groups and drill-down
+paginates 20 generations, with eager-loaded ownership and settlement data.
+Dates use the provider completion timestamp normalized to UTC, not creation,
+webhook receipt, or settlement date. Gross profit is actual customer charges
+minus provider costs; historical generations are never repriced.
+
+**Refresh provider usage** is an admin-only CSRF-protected POST. Page renders
+perform no provider requests. The typed client retrieves `GET /v1/usage`, checks
+all requested days and totals, and preserves exact nine-decimal amounts. Daily
+and whole-period status is MATCHED, MISMATCHED, UNAVAILABLE, or NOT_CHECKED.
+A match requires equality of counts, all four token categories, and provider
+costs. Differences are local minus provider; a failed fetch can never be matched.
+
+Validated scalar snapshots are cached for 24 hours, scoped by environment,
+provider URL, key, and date range. They become stale after 10 minutes. A shared
+atomic lock prevents overlapping refreshes; a key-wide cooldown permits at most
+one fetch per minute and honors longer Retry-After values. Failed refreshes
+retain previous data with an unavailable/stale label and the last successful
+fetch timestamp. Cache eviction returns the comparison to NOT_CHECKED.
+
+Provider reconciliation is key-wide, while user reports are local. Out-of-band
+provider generations or historic key rotations can produce legitimate mismatches.
+No refresh changes settlements. Use closed UTC days when establishing a stable
+baseline; an active day's values can change after a successful fetch.
+
+### Provision an admin
+
+All existing/new users default to non-admin. The protected flag is excluded from
+mass assignment, registration, profile forms, and serialized user data. Access
+is enforced by the `viewFinancialReports` Gate on every financial endpoint;
+only permitted users see the navigation entry. Ordinary generation routes remain
+owner-scoped, including for admins. Cross-user inspection has a dedicated
+admin financial detail route.
+
+After reviewing and applying `add_is_admin_to_users_table` to the intended
+installation, a trusted operator can explicitly grant/revoke an existing user's
+capability from that environment's server console:
+
+```shell
+php artisan app:admin USER_ID --force --no-interaction
+php artisan app:admin USER_ID --revoke --force --no-interaction
+```
+
+Replace USER_ID with the reviewed numeric account ID. Without --force no change
+is made. These commands are operational mutations; they are not run by tests
+against development/production or by merely visiting a page. There is no public
+role-management endpoint and no RBAC package.
 
 ## Run locally
 
@@ -235,7 +301,8 @@ Provider financial reconciliation is a separate read-only operation against
 `GET /v1/usage`, using the **production** key and UTC completion dates. Compare
 successful generation counts, four token categories, and exact summed provider
 nanodollars. Do not substitute customer revenue, settlement date, or rounded cents.
-The report includes the procedure; no admin dashboard is implemented.
+The admin report implements this comparison through a manual refresh. Its live
+production reconciliation result remains unverified; see the evidence report.
 
 Cloud references: [workers](https://laravel.com/cloud/docs/workers),
 [scheduled tasks](https://laravel.com/cloud/docs/scheduled-tasks), and
@@ -253,8 +320,9 @@ Cloud references: [workers](https://laravel.com/cloud/docs/workers),
 - Image URLs expire 24 hours after completion; images are not rehosted or stored.
 - Provider-key provenance is not stored per generation. Key rotation and activity
   outside this application must be accounted for when reconciling provider usage.
-- Admin financial reports, credit wallets, purchases, and payment processing are
-  **not implemented**. They are subsequent assessment bonuses.
+- Credit wallets, purchases, payment processing, and an onboarding tour are
+  **not implemented**. Financial reports are local Phase 6 functionality awaiting
+  rollout; production acceptance remains separate.
 - No authenticated screenshots were available for this README; none are invented.
 
 ## License metadata

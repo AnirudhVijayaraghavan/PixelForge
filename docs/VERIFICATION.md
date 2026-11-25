@@ -16,7 +16,7 @@ Statuses mean: **PASS** observed evidence; **FAIL** an observed mismatch;
 **BLOCKED** required access/evidence unavailable; **NOT RUN** not exercised.
 Local automated/manual results are explicitly separate from production results.
 
-## Release identity and source
+## Release identity and source (Phase 5B snapshot)
 
 | Check                                    | Status  | Evidence                                                                                                                                                |
 | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -262,5 +262,162 @@ README.md and docs/VERIFICATION.md are new.
 - Put the README/report through the existing Git workflow when approved; they
   have not been committed or published by the guide.
 - Admin reporting, wallets, purchases, and new financial schema remain absent.
-  Phase 6 has not started; its production correctness prerequisite is not yet
-  signed off.
+  At that audit, Phase 6 had not started and production correctness was not
+  signed off. The user subsequently authorized Phase 6 and deferred live
+  financial verification to Phase 9; see the implementation record below.
+
+## Phase 5C interactive production verification - in progress
+
+The earlier Phase 5B results above remain historical evidence. This phase adds
+no application features and authorizes no automatic production changes.
+
+- GitHub main and the clean Desktop repository now report
+  `76031f8641bd64dbc9ff9d312c7b045a1e941224`, Document setup and verification status.
+  The active Cloud deployment commit still requires dashboard confirmation.
+- The project-local and PATH Cloud CLI are still unavailable. The owner will
+  perform read-only checks in the production environment's dashboard/Commands
+  panel. No package installation or Cloud authentication was initiated.
+- Reviewed queue settings, SubmitGeneration, ApplyGenerationSnapshot, schedule
+  registration, configuration names, prior evidence, and the migration-status
+  implementation before proposing diagnostics. The runtime preflight was syntax
+  checked locally without execution; it prints selected non-secret fields and
+  only CONFIGURED/MISSING credential presence.
+- No additional generation or provider request has been executed in this phase.
+  The user supplied the two planned prompts but explicitly requires approval
+  before either creation. Image settings/current quotes must be reviewed first.
+
+| ID  | Operation                                     | Status  | Evidence / next action                                                                                                  |
+| --- | --------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| C01 | Production preflight and release identity     | BLOCKED | Await active Cloud SHA and selected runtime output; migration, worker, and scheduler evidence will follow interactively |
+| C02 | A cinematic mountain landscape [succeed]      | NOT RUN | One proposed generation; approval pending, no local/provider ID or amounts yet                                          |
+| C03 | Abstract geometric composition [fail]         | NOT RUN | One proposed generation; approval pending, zero-charge/no-settlement result not yet observed                            |
+| C04 | Exact production-key UTC usage reconciliation | BLOCKED | Need production usage and DB aggregates; counts, costs, and differences remain unknown                                  |
+| C05 | Authentic provider-event replay               | NOT RUN | Need an existing signed event, baseline settlement count, and explicit replay approval                                  |
+
+Do not infer worker execution from its configured connection or scheduler
+execution from schedule:list. No Phase 5C acceptance or Phase 6 readiness is
+claimed while this evidence is outstanding.
+
+## Phase 6 admin financial reporting - local implementation
+
+The user explicitly authorized Bonus 1 and deferred production financial
+reconciliation to Phase 9. Earlier production BLOCKED/NOT RUN entries remain
+unchanged evidence, not claims that the new feature was exercised in production.
+No wallet, purchases, onboarding tour, deployment, production mutation, or new
+live provider request was performed.
+
+Implemented a default-off protected admin capability, explicit console grant/
+revoke command, UTC daily/user/day-user reports, paginated financial drill-down,
+typed GET /usage parsing, and manually refreshed reconciliation. Existing
+settlement/provider-generation algorithms were not changed. New schema is only
+users.is_admin; the authored migration has not been applied to development or
+production. All migrations in tests use the guarded SQLite memory database.
+
+Exact aggregates use bounded chunked BigInteger accumulation and decimal-string
+formatting, including totals above signed BIGINT. Reconciliation compares counts,
+four token categories, and provider cost; one-nanodollar and token-only mismatches
+remain mismatched. Failed/stale provider fetches are never shown as matched.
+Snapshots are scalar arrays with environment/key/date isolation and global
+per-key cooldown/atomic refresh locking. No financial facts are rewritten.
+
+| Check                                                 | Status  | Evidence                                                                                                                      |
+| ----------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Focused automated feature tests                       | PASS    | 54 tests / 251 assertions; HTTP fake, SQLite memory                                                                           |
+| Query count and bounded pages                         | PASS    | Tests cover selected page sizes, subsequent pages, and bounded queries without per-user reads                                 |
+| PostgreSQL query syntax/planning                      | PASS    | Read-only EXPLAIN of grouped settlement/user query accepted on local PostgreSQL and used existing indexes; no records written |
+| PostgreSQL concurrency / production report acceptance | NOT RUN | SQLite tests and EXPLAIN do not prove production locking or real provider equality                                            |
+| Admin navigation and responsive UI                    | NOT RUN | Source/type/build checks only; no manual browser session claimed                                                              |
+| Actual production-key usage reconciliation            | BLOCKED | Deferred to Phase 9; no production usage totals/differences obtained                                                          |
+| Development/production admin migration and promotion  | NOT RUN | Explicit rollout/operator action required; none executed                                                                      |
+
+Focused coverage includes fractional-cent totals without cent rounding,
+large aggregates, multiple users/dates, UTC midnight and offset normalization,
+historical rate changes, zero failed amounts, empty periods, missing settlements,
+provider parsing/precision/errors/timeouts, exact matching and metric mismatches,
+out-of-band usage, freshness/Retry-After, serialized database cache, key isolation,
+overlap protection, guest/user/admin access, privilege escalation, console grants,
+and cross-user generation isolation. Existing settlement uniqueness tests remain.
+
+### Phase 6 quality gates
+
+| Command                              | Status | Result                                                        |
+| ------------------------------------ | ------ | ------------------------------------------------------------- |
+| composer test --no-interaction       | PASS   | Pint PASS; PHPStan 0 errors; Pest 441 tests / 2112 assertions |
+| composer lint:check --no-interaction | PASS   | Pint PASS                                                     |
+| npm.cmd run types:check              | PASS   | vue-tsc PASS after fresh Wayfinder generation                 |
+| npm.cmd run check                    | PASS   | Formatting PASS; 84 files linted without warnings/errors      |
+| npm.cmd run build                    | PASS   | PASS; 3689 modules; existing optional fontaine warning        |
+
+Known limitations: linear range scans are bounded in memory but cost grows with
+settlements in the selected 92 days; cache snapshots expire and are not a durable
+reconciliation audit ledger; historic provider key attribution is not persisted;
+open UTC days may produce transient mismatches. No authenticated admin screenshot
+or real-browser accessibility test was performed. The existing license metadata
+discrepancy remains unresolved. Source changes are local and uncommitted.
+
+Final local result: **441 tests / 2112 assertions**, with Pint, PHPStan (0 errors),
+TypeScript, frontend checks, and build passing. The focused addition is 54 tests
+and 251 assertions. No safety configuration or quality threshold was relaxed.
+
+Fresh local route inspection confirms auth plus can:viewFinancialReports on all
+three new endpoints. migrate:status confirms only the admin migration is pending.
+The local route cache still described the pre-admin routes and caused dev tooling
+to overwrite generated admin helpers. After confirming app.env=local and
+app.url=http://localhost:8002, only that local route cache was deliberately
+cleared, then Wayfinder regenerated. No configuration cache, .env, database,
+production setting, or production deployment was changed. Existing settlement
+logic, dependency manifests/lockfiles, and the separate Desktop copy remain
+unchanged. Final source/secret/whitespace review is recorded below.
+
+Final review covered all 32 manifest files against the saved task baseline or
+the separate committed Desktop source. No configured secret values, private-key
+markers, or whitespace errors were detected. Dependency manifests/lockfiles,
+test-isolation files, and the lifecycle settlement action were unchanged. The
+Desktop repository remains clean; no commit or push was made. The U: working
+tree still has no commits, so ordinary tracked Git diff output alone cannot
+represent this change set; the per-file baseline comparison was used instead.
+
+Phase 6 is complete locally and ready as the foundation for Phase 7. An approved
+release must apply the admin migration and explicitly provision an admin, then
+perform an authenticated admin browser smoke test. Actual production financial
+acceptance remains deferred to Phase 9; it is not inferred from automated tests.
+
+### Phase 6 file manifest
+
+32 source/documentation files: 21 new and 11 modified. Generated Wayfinder and
+build artifacts are ignored and excluded.
+
+```text
+README.md
+app/Console/Commands/ManageAdmin.php
+app/Domain/Billing/FinancialReport.php
+app/Domain/Billing/FinancialTotals.php
+app/Domain/Billing/ProviderReconciliation.php
+app/Domain/Billing/ReportPeriod.php
+app/Http/Controllers/Admin/FinancialReportController.php
+app/Http/Controllers/Admin/GenerationFinancialController.php
+app/Http/Controllers/Admin/RefreshReconciliationController.php
+app/Http/Middleware/HandleInertiaRequests.php
+app/Http/Requests/FinancialReportRequest.php
+app/Integrations/Pixelforge/PixelforgeClient.php
+app/Integrations/Pixelforge/PixelforgeUsageData.php
+app/Models/User.php
+app/Providers/AppServiceProvider.php
+database/factories/UserFactory.php
+database/migrations/2026_11_25_042923_add_is_admin_to_users_table.php
+docs/ARCHITECTURE.md
+docs/VERIFICATION.md
+resources/js/components/AppSidebar.vue
+resources/js/components/generations/FinancialGenerationTable.vue
+resources/js/components/generations/FinancialTable.vue
+resources/js/components/generations/ProviderReconciliationPanel.vue
+resources/js/components/generations/ReportPagination.vue
+resources/js/pages/admin/financials/Index.vue
+resources/js/pages/admin/financials/Show.vue
+resources/js/types/financial-report.ts
+resources/js/types/global.d.ts
+routes/web.php
+tests/Feature/AdminFinancialReportsTest.php
+tests/Feature/ProviderUsageTest.php
+tests/Fixtures/pixelforge/usage.json
+```

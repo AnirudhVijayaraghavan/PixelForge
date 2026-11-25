@@ -1,8 +1,8 @@
 # Pixelforge Studio architecture
 
-Through Phase 4: provider submission, signed webhooks, atomic settlement,
-bounded recovery, and the authenticated Studio/gallery/Cost Inspector.
-Optional finances and deployment remain deferred.
+Through Phase 6: provider submission, signed webhooks, atomic settlement, bounded
+recovery, Studio/gallery/Cost Inspector, and admin financial reporting. Deployment
+exists; live financial verification is deferred to Phase 9. Wallets remain deferred.
 
 ## Boundaries and responsibilities
 
@@ -372,3 +372,63 @@ Inertia pages. Loading/failure/success and estimate/actual differences must be
 clear. Existing Eloquent and Laravel primitives keep workflows reviewable;
 generic repositories, CQRS, event sourcing, microservices, and speculative
 infrastructure add no value at this assessment's scope.
+
+## Phase 6 admin financial reporting
+
+The default-off users.is_admin capability is excluded from mass assignment and
+hidden in serialized user data. viewFinancialReports guards the page, refresh,
+and dedicated financial generation detail route. Registration/profile actions
+cannot grant it. app:admin USER_ID --force (optionally --revoke) is the explicit
+trusted-console operation. No existing user is promoted by the migration.
+Shared props expose only the resulting capability for conditional navigation;
+ordinary generation policies remain owner-only, including for admins.
+
+FinancialReport owns bounded UTC completion-date queries (1-92 inclusive days).
+Settlement facts are authoritative: customer charges and provider costs are
+summed exactly, with gross profit as their difference. No estimate/current rate
+is used. TIMESTAMP completion values are stored in UTC by the existing provider
+DTO. Missing successful settlements are surfaced as an invariant problem.
+
+FinancialTotals accumulates integer strings with Brick BigInteger. It validates
+individual Money bounds but never narrows an aggregate back to signed BIGINT;
+BigDecimal.ofUnscaledValue renders exact nine-decimal USD. One lazyById scan uses
+500-row chunks, holding at most 92 daily accumulators and the selected user/group
+pages. User and daily-user groups paginate 15 rows; completion drill-down uses 20
+records with eager-loaded users/settlements. There are no per-user queries or
+SQL money SUMs. This portable linear scan is proportionate to the assessment;
+larger reporting workloads would justify NUMERIC-safe database aggregation or
+reviewed rollups, with the same financial semantics.
+
+PixelforgeUsageData validates the documented /usage object, exact requested UTC
+range, unique complete daily coverage, integer counts, nine-decimal cost strings,
+and totals equal to the days. Aggregate money retains arbitrary precision.
+FinancialReportRequest applies Gate authorization, strict dates, and the inclusive
+92-day bound. Thin controllers delegate queries and provider refresh separately.
+
+ProviderReconciliation fetches only on an admin POST, outside SQL transactions.
+Its injected cache repository stores validated scalar arrays for 24 hours, with
+key/environment/base-URL/range isolation, a 30-second atomic lock, and a key-wide
+60-second cooldown extended by Retry-After. Snapshots are stale at 10 minutes.
+Failure preserves the last successful data/time but yields UNAVAILABLE. No GET
+page render fetches provider data. All comparable daily metrics must be equal for
+MATCHED; any mismatch is MISMATCHED, missing data is NOT_CHECKED, and stale/failed
+fetches are UNAVAILABLE. Whole-period status cannot hide daily discrepancies.
+No settlement is mutated by reporting or reconciliation.
+
+The provider is API-key scoped, not user scoped. Local rows lack historic key IDs,
+so key rotation and outside-application activity require operator attribution;
+comparison is explicit rather than forced equal. An open UTC day can legitimately
+change between local reads and a provider snapshot. Shared persistent cache is
+required across replicas. Cache eviction discards comparison history; this is
+an operational snapshot, not a new authoritative financial ledger.
+
+Admin Vue pages reuse existing cards, alerts, tables, navigation, and the Cost
+Inspector. Exact amount strings are rendered without JavaScript arithmetic.
+Dedicated table/reconciliation components keep filters, pagination, and fetch
+feedback distinct. An admin financial detail view is read-only and does not
+provide cross-user prompt reuse or normal-user status polling.
+
+The admin migration and operational promotion require a separate approved rollout.
+No development/production migration or promotion is performed during this phase.
+Live provider financial acceptance remains deferred to Phase 9; automated tests
+use the original fail-closed SQLite memory environment and fake provider HTTP.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Integrations\Pixelforge;
 
+use App\Domain\Billing\ReportPeriod;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Http\Client\ConnectionException;
@@ -76,6 +77,17 @@ final readonly class PixelforgeClient
         }
 
         return $generation;
+    }
+
+    public function usage(ReportPeriod $period): PixelforgeUsageData
+    {
+        try {
+            $response = $this->request()->withToken($this->apiKey())->get('/usage', $period->toArray());
+        } catch (ConnectionException) {
+            throw PixelforgeException::connectionFailure(false);
+        }
+
+        return $this->parse($response, 200, fn (array $data): PixelforgeUsageData => PixelforgeUsageData::fromArray($data, $period));
     }
 
     private function request(): PendingRequest
