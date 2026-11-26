@@ -748,3 +748,11 @@ Use a guest session and two separate test accounts. Use existing generations for
 | UX-6 | Use VoiceOver/Safari and NVDA, both themes, 200% zoom and a physical phone.                                                 | Clear landmarks and form names, audible step changes, usable targets and focus indicators, reachable actions and legible contrast.                 | NOT RUN      |
 
 For a failure, record browser/version, viewport, theme, action, observed result and non-secret evidence in the matrix. Keep production verification for Phase 9.
+
+## Phase 9A release handoff
+
+The [verification record](VERIFICATION.md) covers local PostgreSQL races and Chrome fixture checks. Use the [cutover runbook](RELEASE_RUNBOOK.md) for the deployed revision, production worker and scheduler, signed delivery, settlement replay and UTC usage comparison. Record those results separately. Physical device, screen-reader and Safari acceptance remain open.
+
+## Reviewer walkthrough
+
+Use the [README quick start](../README.md#run-locally) from the intended candidate commit. Register a new local account, confirm a simulated credit purchase, and inspect the quote, maximum hold, history and Cost Inspector. Confirm an ordinary user receives a forbidden response for financial reports. For a credential-free check, run the Pest suite with HTTP fixtures. Keep local fixture results separate from the live callback and usage evidence collected during [Cloud cutover](RELEASE_RUNBOOK.md).

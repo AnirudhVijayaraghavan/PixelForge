@@ -6,7 +6,6 @@ use App\Domain\Billing\WalletAccounting;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use App\Models\CreditReservation;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,8 +57,8 @@ class ProfileController extends Controller
         DB::transaction(function () use ($user, $wallets): void {
             $wallets->lock($user->id);
             if (DB::table('credit_ledger_entries')->where('user_id', $user->id)->exists()
-                || CreditReservation::query()->where('user_id', $user->id)->exists()) {
-                throw ValidationException::withMessages(['password' => 'This account has financial activity. Contact support about account closure.']);
+                || $user->generations()->exists()) {
+                throw ValidationException::withMessages(['password' => 'This account has generation history or financial activity. Contact support about account closure.']);
             }
             Auth::logout();
             $user->delete();

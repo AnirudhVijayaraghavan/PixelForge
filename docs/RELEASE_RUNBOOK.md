@@ -1,0 +1,35 @@
+# Financial release runbook
+
+## Identify the candidate
+
+Use the GitHub Desktop checkout that owns the public repository. Synchronize the candidate using the [release manifest](RELEASE_MANIFEST.md), inspect the staged diff, and record the candidate SHA and currently deployed Cloud SHA separately. Keep environment files, build output, scratch databases and browser profiles out of Git. Confirm the branch and push-to-deploy setting before publishing a branch or merging. A push on a watched branch can start deployment.
+
+Install from the existing lockfiles. The locally tested runtime was 64-bit PHP 8.4 with PDO PostgreSQL, mbstring and the locked Composer extensions, and Node 24. Run `composer check-platform-reqs`. Build with Composer 2, `composer install --no-dev --optimize-autoloader`, `npm ci --include=dev` and `npm run build`. Wayfinder needs the PHP application's dependencies during the frontend build. Preserve the existing Cloud configuration for Laravel cache discovery. Do not package workstation configuration, routes, `public/hot` or test caches. Inspect the resulting named routes with `php artisan route:list` and the schedule with `php artisan schedule:list` in the candidate runtime. Verify cached configuration resolves the production database, queue and cache without printing secrets.
+
+## Before the change window
+
+1. In Cloud, identify the attached PostgreSQL instance, database name, version, runtime role and latest recoverable backup or point-in-time restore. Check `php artisan migrate:status` against that identified target. Review active generations, outstanding holds, recent failed jobs and the latest provider UTC usage day. Save counts and exact settlement totals for comparison. A database restore also requires reconciling provider work that occurred after the restore point.
+2. Confirm `APP_ENV=production`, `APP_DEBUG=false`, existing `APP_KEY`, HTTPS `APP_URL`, PostgreSQL connection, UTC application time, persistent session store and shared cache supporting locks. Check presence of `PIXELFORGE_BASE_URL`, environment-specific `PIXELFORGE_API_KEY`, `PIXELFORGE_WEBHOOK_SECRET` and the HTTPS callback `/webhooks/pixelforge`. Keep credentials within the environment. Never rotate the application key for this release.
+3. Check `QUEUE_CONNECTION=database`, `PIXELFORGE_QUEUE_CONNECTION=database`, and `DB_QUEUE_RETRY_AFTER=90` or an equivalent safe interval. Confirm the jobs, failed jobs and shared cache tables. The worker command is `php artisan queue:work database --queue=pixelforge --timeout=30 --tries=10`. Enable one Cloud scheduler invocation of `php artisan schedule:run` every minute. Confirm `php artisan schedule:list` shows `pixelforge:reconcile`. It dispatches at most 20 by default and uses a shared overlap lock. A deployment log alone does not establish that either background process is running.
+4. Establish a write pause across **every** replica and ingress. Gate admissions, purchases, account changes and webhook delivery, allow active transactions/workers to finish, then suspend old consumers and the scheduler. Return a retryable 503 during a webhook pause. If the environment cannot enforce this pause, schedule a maintenance window before enabling wallet admission. A local file maintenance flag on one replica is insufficient.
+
+## Migrate and switch
+
+Run `php artisan migrate --force` once as the Cloud deploy command, with the intended production role and approved backup. Laravel executes pending migrations in filename order. For an installation through recovery tracking, the order is:
+
+1. `2026_11_25_042923_add_is_admin_to_users_table` defaults existing users to ordinary accounts.
+2. `2026_11_25_052233_create_credit_wallet_tables` creates wallet, reservation, ledger, owner/amount indexes, foreign keys and the ledger trigger. It creates zero-credit wallets for existing users. Composite index creation and backfill may take locks on a populated database. Rehearse against representative volume if the maintenance window is tight.
+3. `2026_11_25_205525_protect_generation_settlements_from_mutation` installs the settlement immutability trigger without changing any amounts.
+
+Cloud runs deploy commands before routing traffic to the new release. Let Cloud replace the application and worker processes. Verify their revision and migration status before opening ingress. Resume new-code workers and scheduler, then webhooks, then user writes. A new worker recognizes historical generations by the absence of a reservation. An old worker can settle a wallet-funded generation without closing its hold, so keep old workers and old webhook handlers out of service after wallet admission begins. Build artifact and deploy command guidance is in the [Cloud environments documentation](https://laravel.com/cloud/docs/environments).
+
+## Smoke and monitor
+
+- Open the public page, log in, inspect Studio, simulated wallet and an existing generation. Check a fresh account begins at zero. Confirm an ordinary user cannot access financial reports. Grant report access only after an operator verifies the account and separately authorizes `php artisan app:admin USER_ID --force --no-interaction`. The corresponding removal uses `--revoke --force`.
+- Check a quote, simulated purchase and insufficient-funds response. With explicit approval for live submissions, trace one success and one failure through the queue, signed deliveries and terminal status. Replay an existing provider event. Verify exactly one settlement and debit for the success, full hold release and zero debit for the failure. Older settlements must retain their pre-release values.
+- Check Cloud worker and scheduler logs, queue depth/oldest age, `php artisan queue:failed`, webhook responses, unresolved submissions, stopped polling, stale active holds and accepted-rate exposure. Use the existing single-generation recovery selector `php artisan pixelforge:reconcile --generation=LOCAL_UUID` after reviewing budgets and identity. It can dispatch real work. Never release an uncertain hold based solely on age or replace its idempotency key.
+- As an authorized admin, refresh provider usage for the production key over the relevant inclusive UTC completion days. Require equality of successful counts, each token category and provider cost to nine decimals. Investigate out-of-band key use, key rotation, missing settlements and late completions. Preserve discrepancies and record evidence in VERIFICATION.md.
+
+## Failure and recovery
+
+If a migration or rollout fails, keep writes paused, inspect migration records and catalog objects, and determine which revision serves HTTP, queue and webhook traffic. Prefer a forward fix. Before any funded intent exists, an approved rollback to a compatible code revision may leave additive schema in place. After the first funded intent, retain wallet-aware code for submissions, callbacks, reconciliation and captures. Do not redeploy a pre-wallet worker, roll back financial tables, reset retry budgets, or replay all failed jobs indiscriminately. Match provider identities and local financial facts before resuming work.

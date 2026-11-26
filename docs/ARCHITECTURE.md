@@ -115,8 +115,9 @@ writes it and the authoritative settlement in one short transaction.
 Eloquent financial attributes serialize as
 integer strings; Money renders USD with exactly nine decimals. Standard model
 mass assignment is fully guarded; ownership is enforced by GenerationPolicy.
-All timestamps must be written in UTC. PostgreSQL execution/locking verification
-still requires a separately approved disposable integration database.
+All timestamps are written in UTC. Database triggers reject updates and deletes
+of authoritative settlement and ledger rows, including bulk SQL writes. The
+separate PostgreSQL release suite exercises real row-lock contention.
 
 ## Phase 2 submission lifecycle
 
@@ -263,6 +264,8 @@ silently reset. Preserve the same provider account/base URL and request identity
 
 ## Local development
 
+The [README quick start](../README.md#run-locally) covers a fresh checkout with SQLite or a dedicated PostgreSQL database.
+
 Configure the intended local database and copy the Pixelforge placeholders from
 `.env.example` into the private `.env`, using a real key for this environment.
 Set PIXELFORGE_QUEUE_CONNECTION=database locally. After configuration/route changes,
@@ -362,8 +365,10 @@ Run `composer test` (Pint, existing PHP analysis, Pest), or narrow tests with
 `php artisan test --compact tests/Unit/TestEnvironmentTest.php`. Run
 `npm run check`, `npm run types:check`, and `npm run build` for frontend quality.
 Use `npm.cmd` on this PowerShell host. Never run `composer setup` to verify an
-existing environment: it includes migration. Integration DBs require a future
-explicit opt-in with target validation; SQLite cannot prove PostgreSQL locks.
+existing environment: it includes migration. For PostgreSQL release checks, run the opt-in launcher under
+`tests/Postgres`. It provisions fresh loopback clusters and random restricted
+database owners, verifies each session, and never reads the development .env.
+The ordinary SQLite bootstrap remains mandatory for Pest.
 The custom TestCase boot sequence follows installed Laravel 13; review it on
 framework upgrades before adopting cached-config/routes testing traits.
 

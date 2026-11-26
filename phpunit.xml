@@ -30,6 +30,11 @@
         <env name="DB_DATABASE" value=":memory:" force="true"/>
         <env name="DB_URL" value="" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>
+        <env name="PIXELFORGE_BASE_URL" value="https://pixelforge.promptedit.dev/v1" force="true"/>
+        <env name="PIXELFORGE_API_KEY" value="" force="true"/>
+        <env name="PIXELFORGE_WEBHOOK_SECRET" value="" force="true"/>
+        <env name="PIXELFORGE_QUEUE_CONNECTION" value="database" force="true"/>
+        <env name="DB_QUEUE_RETRY_AFTER" value="90" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="QUEUE_FAILED_DRIVER" value="null" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>

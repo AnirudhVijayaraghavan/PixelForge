@@ -209,3 +209,11 @@ test('authorizes only the owner and conceals cross-user generation existence', f
     expect(Gate::forUser($owner)->allows('update', $generation))->toBeFalse();
     expect(Gate::forUser($other)->allows('update', $generation))->toBeFalse();
 });
+
+test('settlement facts also reject bulk SQL mutations', function (string $operation) {
+    $settlement = GenerationSettlement::factory()->create();
+    $query = DB::table('generation_settlements')->where('id', $settlement->id);
+    expect(fn () => $operation === 'delete' ? $query->delete() : $query->increment('provider_cost_nanodollars'))
+        ->toThrow(QueryException::class);
+    expect($settlement->fresh()->provider_cost_nanodollars)->toBe('57780000');
+})->with(['update', 'delete']);

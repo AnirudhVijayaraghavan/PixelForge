@@ -280,3 +280,13 @@ test('account closure preserves immutable wallet activity and the authenticated 
     $this->assertAuthenticatedAs($user);
     assertWalletFacts($user, 5000000000, 0);
 });
+
+test('account closure preserves pre-wallet generation history and the session', function () {
+    $user = User::factory()->create();
+    $generation = Generation::factory()->for($user)->accepted()->create();
+
+    $this->actingAs($user)->delete(route('profile.destroy'), ['password' => 'password'])
+        ->assertSessionHasErrors('password');
+    $this->assertAuthenticatedAs($user);
+    expect($generation->fresh()->user_id)->toBe($user->id);
+});
