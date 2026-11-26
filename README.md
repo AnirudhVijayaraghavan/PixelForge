@@ -6,7 +6,7 @@ The application implements real account, queue, webhook, and accounting flows. P
 
 [Live demo](https://pixelforge-production-hcilan.laravel.cloud/) · [Public repository](https://github.com/AnirudhVijayaraghavan/PixelForge) · [Verification record](docs/VERIFICATION.md)
 
-The public demo returned HTTP 200 during release preparation. The deployed commit, rollout of the complete candidate, and production financial reconciliation still require verification. The screenshots and workflow below describe the release candidate.
+The live home and health endpoints returned HTTP 200 during final verification. GitHub main publishes the complete assessment source at `257e936`. The active Cloud revision and production financial reconciliation remain unverified. The Linux CI run for this commit failed on a case-sensitive test fixture path. [Release verification](docs/VERIFICATION.md#phase-9d-production-sign-off)
 
 ## Screenshots
 

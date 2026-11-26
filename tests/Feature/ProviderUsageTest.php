@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 /** @return array<string, mixed> */
 function documentedUsageFixture(): array
 {
-    return json_decode(file_get_contents(__DIR__.'/../Fixtures/pixelforge/usage.json'), true, flags: JSON_THROW_ON_ERROR);
+    return json_decode(file_get_contents(__DIR__.'/../Fixtures/Pixelforge/usage.json'), true, flags: JSON_THROW_ON_ERROR);
 }
 
 test('fetches exact key-scoped usage with authenticated inclusive UTC query parameters', function () {
